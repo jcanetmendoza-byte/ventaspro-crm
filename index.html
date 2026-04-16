@@ -1,0 +1,1147 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VentasPro CRM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="loginScreen" style="display:none">
+  <div class="login-bg"></div>
+  <div class="login-card">
+    <div class="login-logo"><i class="fa-solid fa-bolt-lightning"></i></div>
+    <div class="login-title">VentasPro CRM</div>
+    <div class="login-sub">Inicia sesión para sincronizar tus datos en todos tus dispositivos</div>
+
+    <div class="login-fields">
+      <div class="login-field">
+        <i class="fa-solid fa-envelope"></i>
+        <input type="email" id="loginEmail" placeholder="Correo electrónico" autocomplete="email">
+      </div>
+      <div class="login-field">
+        <i class="fa-solid fa-lock"></i>
+        <input type="password" id="loginPassword" placeholder="Contraseña" autocomplete="current-password">
+      </div>
+    </div>
+
+    <button class="login-btn login-btn-primary" id="loginBtn">
+      <i class="fa-solid fa-right-to-bracket"></i>
+      Entrar
+    </button>
+    <button class="login-btn login-btn-secondary" id="registerBtn">
+      <i class="fa-solid fa-user-plus"></i>
+      Crear cuenta nueva
+    </button>
+
+    <div class="login-divider"><span>o</span></div>
+
+    <button class="login-btn login-btn-google" id="loginGoogleBtn">
+      <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.08 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-3.59-13.46-8.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+      Continuar con Google
+    </button>
+
+    <div class="login-note" id="loginNote"></div>
+  </div>
+</div>
+
+<!-- LOADER -->
+<div id="loader">
+  <div class="loader-inner">
+    <div class="loader-logo"><i class="fa-solid fa-bolt-lightning"></i></div>
+    <div class="loader-bar"><div class="loader-fill"></div></div>
+  </div>
+</div>
+
+<div id="app" style="opacity:0">
+<!-- SVG defs for gradients -->
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <linearGradient id="retosGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#A855F7"/>
+      <stop offset="100%" stop-color="#FF8C42"/>
+    </linearGradient>
+  </defs>
+</svg>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+
+  <!-- Brand -->
+  <div class="sb-brand">
+    <div class="sb-brand-icon"><i class="fa-solid fa-bolt-lightning"></i></div>
+    <span class="sb-brand-name">VentasPro</span>
+    <button class="sb-collapse-btn" id="collapseBtn" title="Colapsar"><i class="fa-solid fa-chevron-left"></i></button>
+  </div>
+
+  <!-- Nav -->
+  <nav class="sb-nav">
+
+    <div class="sb-group-label">Principal</div>
+
+    <a href="#" class="sb-item active" data-section="dashboard" data-tooltip="Dashboard">
+      <div class="sb-item-icon"><i class="fa-solid fa-chart-pie"></i></div>
+      <span class="sb-item-text">Dashboard</span>
+      <div class="sb-item-glow"></div>
+    </a>
+
+    <a href="#" class="sb-item" data-section="contactos" data-tooltip="Contactos">
+      <div class="sb-item-icon"><i class="fa-solid fa-address-book"></i></div>
+      <span class="sb-item-text">Contactos</span>
+      <div class="sb-item-badge" id="sbContactBadge"></div>
+      <div class="sb-item-glow"></div>
+    </a>
+
+    <a href="#" class="sb-item" data-section="calendario" data-tooltip="Calendario">
+      <div class="sb-item-icon"><i class="fa-solid fa-calendar-days"></i></div>
+      <span class="sb-item-text">Calendario</span>
+      <div class="sb-item-glow"></div>
+    </a>
+
+    <div class="sb-group-label">Análisis</div>
+
+    <a href="#" class="sb-item" data-section="metricas" data-tooltip="Métricas">
+      <div class="sb-item-icon"><i class="fa-solid fa-chart-line"></i></div>
+      <span class="sb-item-text">Métricas</span>
+      <div class="sb-item-glow"></div>
+    </a>
+
+    <a href="#" class="sb-item" data-section="guiones" data-tooltip="Guiones">
+      <div class="sb-item-icon"><i class="fa-solid fa-scroll"></i></div>
+      <span class="sb-item-text">Guiones</span>
+      <div class="sb-item-glow"></div>
+    </a>
+
+    <a href="#" class="sb-item" data-section="retos" data-tooltip="Retos">
+      <div class="sb-item-icon"><i class="fa-solid fa-fire-flame-curved"></i></div>
+      <span class="sb-item-text">Retos</span>
+      <div class="sb-item-glow"></div>
+    </a>
+
+    <div class="sb-group-label">Sistema</div>
+
+    <a href="#" class="sb-item" data-section="historial" data-tooltip="Historial">
+      <div class="sb-item-icon"><i class="fa-solid fa-book-open"></i></div>
+      <span class="sb-item-text">Historial</span>
+      <div class="sb-item-glow"></div>
+    </a>
+
+    <a href="#" class="sb-item" data-section="ajustes" data-tooltip="Ajustes">
+      <div class="sb-item-icon"><i class="fa-solid fa-sliders"></i></div>
+      <span class="sb-item-text">Ajustes</span>
+      <div class="sb-item-glow"></div>
+    </a>
+
+  </nav>
+
+  <!-- User -->
+  <div class="sb-user">
+    <div class="sb-user-avatar">V</div>
+    <div class="sb-user-info">
+      <div class="sb-user-name">Vendedor Pro</div>
+      <div class="sb-user-status"><span class="sb-status-dot"></span>En línea</div>
+    </div>
+  </div>
+
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <header class="header">
+    <button class="header-menu" id="menuToggle"><i class="fa-solid fa-bars"></i></button>
+    <div class="header-title" id="headerTitle">
+      <span class="title-text">Dashboard</span>
+      <span class="title-date" id="titleDate"></span>
+    </div>
+    <div class="header-right">
+      <button class="header-btn" id="notifBtn">
+        <i class="fa-solid fa-bell"></i>
+        <span class="badge-dot" id="notifDot"></span>
+      </button>
+      <div class="sync-indicator" id="syncIndicator" title="Sincronizado con la nube">
+        <i class="fa-solid fa-cloud-arrow-up"></i>
+      </div>
+      <button class="btn-paste" id="pasteBtn" title="Pegar datos de negocio">
+        <i class="fa-solid fa-paste"></i>
+        <span>Pegar</span>
+      </button>
+      <button class="btn-add" id="quickAddBtn">
+        <i class="fa-solid fa-plus"></i>
+        <span>Nuevo contacto</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- DASHBOARD -->
+  <section class="page active" id="page-dashboard">
+    <div id="emptyBanner" class="empty-banner">
+      <div class="empty-banner-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+      <div class="empty-banner-text">
+        <div class="empty-banner-title">Bienvenido a VentasPro</div>
+        <div class="empty-banner-sub">Carga datos de ejemplo para ver la app en acción</div>
+      </div>
+      <button class="empty-banner-btn" id="dashLoadSample">
+        <i class="fa-solid fa-wand-magic-sparkles"></i> Cargar datos de prueba
+      </button>
+    </div>
+    <div class="kpi-grid">
+      <div class="kpi-card" data-color="blue">
+        <div class="kpi-top">
+          <div class="kpi-icon blue"><i class="fa-solid fa-users"></i></div>
+          <div class="kpi-trend up" id="trendTotal"><i class="fa-solid fa-arrow-trend-up"></i> +2 hoy</div>
+        </div>
+        <div class="kpi-value" id="kpiTotal">0</div>
+        <div class="kpi-label">Total Contactos</div>
+        <div class="kpi-bar"><div class="kpi-bar-fill blue" style="width:70%"></div></div>
+      </div>
+      <div class="kpi-card" data-color="green">
+        <div class="kpi-top">
+          <div class="kpi-icon green"><i class="fa-solid fa-phone"></i></div>
+          <div class="kpi-trend up" id="trendCalls"><i class="fa-solid fa-arrow-trend-up"></i> +12%</div>
+        </div>
+        <div class="kpi-value" id="kpiCalls">0</div>
+        <div class="kpi-label">Llamadas Hoy</div>
+        <div class="kpi-bar"><div class="kpi-bar-fill green" style="width:55%"></div></div>
+      </div>
+      <div class="kpi-card" data-color="purple">
+        <div class="kpi-top">
+          <div class="kpi-icon purple"><i class="fa-solid fa-handshake"></i></div>
+          <div class="kpi-trend up" id="trendClosed"><i class="fa-solid fa-arrow-trend-up"></i> +1</div>
+        </div>
+        <div class="kpi-value" id="kpiClosed">0</div>
+        <div class="kpi-label">Ventas Cerradas</div>
+        <div class="kpi-bar"><div class="kpi-bar-fill purple" style="width:40%"></div></div>
+      </div>
+      <div class="kpi-card" data-color="orange">
+        <div class="kpi-top">
+          <div class="kpi-icon orange"><i class="fa-solid fa-dollar-sign"></i></div>
+          <div class="kpi-trend up" id="trendRevenue"><i class="fa-solid fa-arrow-trend-up"></i> +18%</div>
+        </div>
+        <div class="kpi-value" id="kpiRevenue">$0</div>
+        <div class="kpi-label">Ingresos Totales</div>
+        <div class="kpi-bar"><div class="kpi-bar-fill orange" style="width:60%"></div></div>
+      </div>
+    </div>
+
+    <div class="dash-grid">
+      <div class="glass-card span2 chart-card-blue">
+        <div class="card-head">
+          <div>
+            <div class="card-title">Actividad de llamadas</div>
+            <div class="card-sub">Últimos 7 días</div>
+          </div>
+          <div class="chart-legend">
+            <span class="leg-dot blue"></span><span>Llamadas</span>
+          </div>
+        </div>
+        <canvas id="callsChart" height="90"></canvas>
+      </div>
+      <div class="glass-card chart-card-green">
+        <div class="card-head">
+          <div>
+            <div class="card-title">Ventas semanales</div>
+            <div class="card-sub">Esta semana</div>
+          </div>
+        </div>
+        <canvas id="salesChart" height="130"></canvas>
+      </div>
+      <div class="glass-card chart-card-purple">
+        <div class="card-head">
+          <div class="card-title">Pipeline</div>
+          <div class="card-sub" id="pipeTotal">0 contactos</div>
+        </div>
+        <div id="pipelineView" class="pipeline-list"></div>
+      </div>
+      <div class="glass-card span2 chart-card-timeline">
+        <div class="card-head">
+          <div class="card-title">Próximos seguimientos</div>
+          <div class="card-sub">Ordenados por urgencia</div>
+        </div>
+        <div id="followupsList" class="timeline-list"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACTOS -->
+  <section class="page" id="page-contactos">
+
+    <!-- TOOLBAR -->
+    <div class="ct-toolbar">
+      <div class="ct-search">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" id="searchInput" placeholder="Buscar negocio, teléfono, ciudad...">
+      </div>
+      <div class="ct-chips" id="filterChips">
+        <button class="ct-chip active" data-status="">Todos</button>
+        <button class="ct-chip" data-status="Nuevo"><span class="ct-chip-dot" style="background:#4F8EFF"></span>Nuevo</button>
+        <button class="ct-chip" data-status="Llamado"><span class="ct-chip-dot" style="background:#FFD166"></span>Llamado</button>
+        <button class="ct-chip" data-status="Interesado"><span class="ct-chip-dot" style="background:#A855F7"></span>Interesado</button>
+        <button class="ct-chip" data-status="Cerrado"><span class="ct-chip-dot" style="background:#22D98A"></span>Cerrado</button>
+        <button class="ct-chip" data-status="No interesado"><span class="ct-chip-dot" style="background:#FF4D6A"></span>No interesado</button>
+        <button class="ct-chip" data-tag="urgente"><i class="fa-solid fa-fire" style="color:#FF8C42;font-size:0.7rem"></i>Urgentes</button>
+        <button class="ct-chip" data-tag="premium"><i class="fa-solid fa-gem" style="color:#A855F7;font-size:0.7rem"></i>Premium</button>
+      </div>
+      <div class="ct-right">
+        <select id="filterType" class="ct-select"><option value="">Todos los tipos</option></select>
+      </div>
+    </div>
+
+    <!-- SUMMARY BAR -->
+    <div class="ct-summary" id="ctSummary"></div>
+
+    <!-- GRID -->
+    <div id="contactsGrid" class="ct-grid"></div>
+
+  </section>
+  <section class="page" id="page-calendario">
+
+    <!-- HEADER: nav + add button -->
+    <div class="gcal-header">
+      <div class="gcal-nav">
+        <button class="gcal-nav-btn" id="prevMonth"><i class="fa-solid fa-chevron-left"></i></button>
+        <button class="gcal-nav-btn" id="nextMonth"><i class="fa-solid fa-chevron-right"></i></button>
+        <h2 class="gcal-title" id="calTitle"></h2>
+        <button class="gcal-today-btn" id="gcalTodayBtn">Hoy</button>
+      </div>
+      <div class="gcal-header-right">
+        <div class="gcal-legend">
+          <span><span class="gcal-leg-dot" style="background:#4F8EFF"></span>Llamada</span>
+          <span><span class="gcal-leg-dot" style="background:#FFD166"></span>Seguimiento</span>
+          <span><span class="gcal-leg-dot" style="background:#22D98A"></span>Cierre</span>
+          <span><span class="gcal-leg-dot" style="background:#A855F7"></span>Tarea</span>
+        </div>
+        <button class="gcal-add-btn" id="addEventBtn">
+          <i class="fa-solid fa-plus"></i> Nueva tarea
+        </button>
+      </div>
+    </div>
+
+    <!-- WEEKDAY LABELS -->
+    <div class="gcal-weekdays">
+      <div>Dom</div><div>Lun</div><div>Mar</div><div>Mié</div>
+      <div>Jue</div><div>Vie</div><div>Sáb</div>
+    </div>
+
+    <!-- CALENDAR GRID -->
+    <div id="calGrid" class="gcal-grid"></div>
+
+    <!-- EVENT DETAIL POPUP -->
+    <div class="gcal-popup" id="gcalPopup">
+      <button class="gcal-popup-close" id="gcalPopupClose"><i class="fa-solid fa-xmark"></i></button>
+      <div class="gcal-popup-type" id="gcalPopupType"></div>
+      <div class="gcal-popup-title" id="gcalPopupTitle"></div>
+      <div class="gcal-popup-meta" id="gcalPopupMeta"></div>
+      <div class="gcal-popup-value" id="gcalPopupValue"></div>
+      <div class="gcal-popup-actions">
+        <a href="#" class="gcal-popup-call" id="gcalPopupCall"><i class="fa-solid fa-phone"></i> Llamar</a>
+        <button class="gcal-popup-done" id="gcalPopupDone"><i class="fa-solid fa-check"></i> Completar</button>
+        <button class="gcal-popup-detail" id="gcalPopupDetail"><i class="fa-solid fa-user"></i> Ver contacto</button>
+      </div>
+    </div>
+    <div class="gcal-popup-overlay" id="gcalPopupOverlay"></div>
+
+    <!-- hidden IDs needed by JS -->
+    <span id="calDayTitle" style="display:none"></span>
+    <span id="agendaDaySub" style="display:none"></span>
+    <span id="agDayPotential" style="display:none"></span>
+    <span id="agendaHotCard" style="display:none"></span>
+    <span id="tlBody" style="display:none"></span>
+
+  </section>
+
+  <!-- METRICAS -->
+  <section class="page" id="page-metricas">
+
+    <!-- KPIs ROW -->
+    <div class="m-kpi-row">
+      <!-- INGRESO DESTACADO -->
+      <div class="m-kpi-hero">
+        <div class="m-kpi-hero-bg"></div>
+        <div class="m-kpi-hero-top">
+          <div class="m-kpi-icon-lg"><i class="fa-solid fa-dollar-sign"></i></div>
+          <div class="m-kpi-trend-lg up" id="mRevTrend"><i class="fa-solid fa-arrow-trend-up"></i> +18%</div>
+        </div>
+        <div class="m-kpi-hero-val" id="mRevenue">$0</div>
+        <div class="m-kpi-hero-label">Ingresos totales</div>
+        <div class="m-kpi-hero-sub" id="mRevSub">vs. semana anterior</div>
+      </div>
+      <!-- MINI KPIs -->
+      <div class="m-kpi-mini-col">
+        <div class="m-kpi-mini" data-color="blue">
+          <div class="m-kpi-mini-top">
+            <div class="m-kpi-mini-icon blue"><i class="fa-solid fa-phone"></i></div>
+            <div class="m-kpi-mini-trend up" id="mCallsTrend">↑ +12%</div>
+          </div>
+          <div class="m-kpi-mini-val" id="mCalls">0</div>
+          <div class="m-kpi-mini-label">Llamadas totales</div>
+        </div>
+        <div class="m-kpi-mini" data-color="purple">
+          <div class="m-kpi-mini-top">
+            <div class="m-kpi-mini-icon purple"><i class="fa-solid fa-handshake"></i></div>
+            <div class="m-kpi-mini-trend up" id="mClosedTrend">↑ +1</div>
+          </div>
+          <div class="m-kpi-mini-val" id="mClosed">0</div>
+          <div class="m-kpi-mini-label">Ventas cerradas</div>
+        </div>
+        <div class="m-kpi-mini" data-color="green">
+          <div class="m-kpi-mini-top">
+            <div class="m-kpi-mini-icon green"><i class="fa-solid fa-percent"></i></div>
+            <div class="m-kpi-mini-trend" id="mConvTrend">—</div>
+          </div>
+          <div class="m-kpi-mini-val" id="mConv">0%</div>
+          <div class="m-kpi-mini-label">Tasa de conversión</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FUNNEL + DONUT -->
+    <div class="m-mid-row">
+      <div class="glass-card m-funnel-card">
+        <div class="card-head">
+          <div>
+            <div class="card-title">Funnel de ventas</div>
+            <div class="card-sub">De contacto a cierre</div>
+          </div>
+        </div>
+        <div id="funnelView" class="m-funnel"></div>
+      </div>
+      <div class="glass-card m-donut-card">
+        <div class="card-head">
+          <div class="card-title">Distribución</div>
+        </div>
+        <div class="m-donut-wrap">
+          <canvas id="convChart"></canvas>
+          <div class="m-donut-center" id="donutCenter">
+            <div class="m-donut-pct" id="donutPct">0%</div>
+            <div class="m-donut-lbl">Conversión</div>
+          </div>
+        </div>
+        <div id="donutLegend" class="m-donut-legend"></div>
+      </div>
+    </div>
+
+    <!-- INGRESOS FULL WIDTH -->
+    <div class="glass-card m-income-card">
+      <div class="card-head">
+        <div>
+          <div class="card-title">Ingresos en el tiempo</div>
+          <div class="card-sub">Acumulado por mes (contactos cerrados)</div>
+        </div>
+        <div class="m-income-total" id="mIncomeTotal">$0 este mes</div>
+      </div>
+      <canvas id="incomeChart" height="70"></canvas>
+    </div>
+
+    <!-- ACTIVIDAD DE LLAMADAS — gráfica de picos -->
+    <div class="glass-card m-activity-card">
+      <div class="card-head">
+        <div>
+          <div class="card-title"><i class="fa-solid fa-wave-square" style="color:var(--blue2);margin-right:8px"></i>Actividad de llamadas</div>
+          <div class="card-sub">Llamadas por día — últimos 30 días</div>
+        </div>
+        <div class="m-activity-legend">
+          <span><span class="m-act-dot" style="background:#4F8EFF"></span>Llamadas</span>
+          <span><span class="m-act-dot" style="background:#22D98A"></span>Meta</span>
+        </div>
+      </div>
+      <canvas id="activityChart" height="80"></canvas>
+    </div>
+
+    <!-- INSIGHTS ROW -->
+    <div class="m-insights-row">
+      <div class="glass-card m-insight">
+        <div class="m-insight-icon" style="background:rgba(255,209,102,0.12);color:var(--yellow)"><i class="fa-solid fa-star"></i></div>
+        <div class="m-insight-info">
+          <div class="m-insight-label">Mejor día de ventas</div>
+          <div class="m-insight-val" id="insightBestDay">—</div>
+        </div>
+      </div>
+      <div class="glass-card m-insight">
+        <div class="m-insight-icon" style="background:rgba(79,142,255,0.12);color:var(--blue2)"><i class="fa-solid fa-clock"></i></div>
+        <div class="m-insight-info">
+          <div class="m-insight-label">Hora con más conversiones</div>
+          <div class="m-insight-val" id="insightBestHour">10:00 – 12:00</div>
+        </div>
+      </div>
+      <div class="glass-card m-insight">
+        <div class="m-insight-icon" style="background:rgba(34,217,138,0.1);color:var(--green)"><i class="fa-solid fa-trophy"></i></div>
+        <div class="m-insight-info">
+          <div class="m-insight-label">Cliente más valioso</div>
+          <div class="m-insight-val" id="insightTopClient">—</div>
+        </div>
+      </div>
+      <div class="glass-card m-insight">
+        <div class="m-insight-icon" style="background:rgba(168,85,247,0.1);color:var(--purple)"><i class="fa-solid fa-chart-line"></i></div>
+        <div class="m-insight-info">
+          <div class="m-insight-label">Ticket promedio</div>
+          <div class="m-insight-val" id="insightAvgTicket">$0</div>
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- GUIONES -->
+  <section class="page" id="page-guiones">
+    <div class="scripts-layout">
+      <div class="scripts-left">
+        <div class="scripts-search">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" id="scriptSearch" placeholder="Buscar guion...">
+        </div>
+        <div id="scriptsList" class="scripts-list"></div>
+        <button class="btn-add-script" id="addScriptBtn"><i class="fa-solid fa-plus"></i> Nuevo guion</button>
+      </div>
+      <div class="scripts-right" id="scriptViewer">
+        <div class="script-empty"><i class="fa-solid fa-scroll"></i><p>Selecciona un guion</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- RETOS DIARIOS -->
+  <section class="page" id="page-retos">
+
+    <!-- HERO: nivel + XP -->
+    <div class="retos-hero">
+      <div class="retos-hero-left">
+        <div class="retos-level-badge" id="retosLevelBadge">
+          <div class="retos-level-icon" id="retosLevelIcon"><i class="fa-solid fa-seedling"></i></div>
+          <div>
+            <div class="retos-level-name" id="retosLevelName">Novato</div>
+            <div class="retos-level-num" id="retosLevelNum">Nivel 1</div>
+          </div>
+        </div>
+        <div class="retos-xp-bar-wrap">
+          <div class="retos-xp-bar"><div class="retos-xp-fill" id="retosXpFill"></div></div>
+          <div class="retos-xp-label" id="retosXpLabel">0 / 100 XP</div>
+        </div>
+      </div>
+      <div class="retos-hero-right">
+        <div class="retos-stat">
+          <div class="retos-stat-val" id="retosTotalXp">0</div>
+          <div class="retos-stat-label">XP Total</div>
+        </div>
+        <div class="retos-stat">
+          <div class="retos-stat-val" id="retosStreak"><i class="fa-solid fa-fire" style="color:var(--orange)"></i> 0</div>
+          <div class="retos-stat-label">Racha días</div>
+        </div>
+        <div class="retos-stat">
+          <div class="retos-stat-val" id="retosBestDay">0</div>
+          <div class="retos-stat-label">Mejor día</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- META DEL DÍA -->
+    <div class="retos-daily glass-card">
+      <div class="retos-daily-top">
+        <div>
+          <div class="card-title"><i class="fa-solid fa-bullseye" style="color:var(--orange);margin-right:8px"></i>Meta de hoy</div>
+          <div class="card-sub" id="retosDailyDate"></div>
+        </div>
+        <div class="retos-goal-ctrl">
+          <button class="retos-goal-btn" onclick="changeGoal(-5)"><i class="fa-solid fa-minus"></i></button>
+          <span class="retos-goal-num" id="retosGoalNum">20</span>
+          <span class="retos-goal-label">llamadas</span>
+          <button class="retos-goal-btn" onclick="changeGoal(5)"><i class="fa-solid fa-plus"></i></button>
+        </div>
+      </div>
+
+      <!-- PROGRESS RING + COUNTER -->
+      <div class="retos-progress-wrap">
+        <div class="retos-ring-wrap">
+          <svg class="retos-ring" viewBox="0 0 120 120">
+            <circle class="retos-ring-bg" cx="60" cy="60" r="52"/>
+            <circle class="retos-ring-fill" id="retosRingFill" cx="60" cy="60" r="52"/>
+          </svg>
+          <div class="retos-ring-center">
+            <div class="retos-ring-num" id="retosCallsDone">0</div>
+            <div class="retos-ring-sub">de <span id="retosRingGoal">20</span></div>
+          </div>
+        </div>
+        <div class="retos-calls-grid" id="retosCallsGrid"></div>
+      </div>
+
+      <!-- ACTION BUTTONS -->
+      <div class="retos-action-row">
+        <button class="retos-call-btn" id="retosCallBtn" onclick="retosLogCall()">
+          <i class="fa-solid fa-phone"></i>
+          <span>Registrar llamada</span>
+          <div class="retos-call-btn-xp">+10 XP</div>
+        </button>
+        <button class="retos-reset-btn" id="retosResetBtn" onclick="retosResetDay()" title="Reiniciar contador del día">
+          <i class="fa-solid fa-rotate-left"></i>
+          <span>Reiniciar día</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- SEMANA -->
+    <div class="glass-card retos-week-card">
+      <div class="card-head">
+        <div class="card-title"><i class="fa-solid fa-calendar-week" style="color:var(--blue2);margin-right:8px"></i>Esta semana</div>
+        <div class="card-sub" id="retosWeekXp">0 XP ganados</div>
+      </div>
+      <div class="retos-week-grid" id="retosWeekGrid"></div>
+    </div>
+
+    <!-- LOGROS -->
+    <div class="glass-card retos-achievements-card">
+      <div class="card-head">
+        <div class="card-title"><i class="fa-solid fa-trophy" style="color:var(--yellow);margin-right:8px"></i>Logros</div>
+      </div>
+      <div class="retos-achievements-grid" id="retosAchievements"></div>
+    </div>
+
+  </section>
+
+  <!-- HISTORIAL -->
+  <section class="page" id="page-historial">
+
+    <!-- TOOLBAR -->
+    <div class="hist-toolbar">
+      <div class="ct-search" style="flex:1;min-width:180px">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" id="histSearch" placeholder="Buscar por nombre, teléfono, ciudad...">
+      </div>
+      <select id="histFilterResult" class="ct-select">
+        <option value="">Todos los resultados</option>
+        <option value="Cerrado">Cerrado</option>
+        <option value="No interesado">No interesado</option>
+        <option value="Número incorrecto">Número incorrecto</option>
+      </select>
+      <select id="histFilterType" class="ct-select">
+        <option value="">Todos los tipos</option>
+      </select>
+    </div>
+
+    <!-- STATS -->
+    <div class="hist-stats-bar" id="histStats"></div>
+
+    <!-- LIST -->
+    <div id="historialList" class="hist-list"></div>
+
+  </section>
+
+  <!-- AJUSTES -->
+  <section class="page" id="page-ajustes">
+    <div class="settings-grid">
+
+      <!-- TEMA -->
+      <div class="glass-card settings-theme-card" style="animation:settingIn 0.4s cubic-bezier(0.22,1,0.36,1) 0s both;grid-column:1/-1">
+        <div class="card-head">
+          <div>
+            <div class="card-title"><i class="fa-solid fa-palette" style="color:var(--purple2);margin-right:8px"></i>Apariencia</div>
+            <div class="card-sub">Elige el tema que prefieras</div>
+          </div>
+        </div>
+        <div class="theme-options">
+          <button class="theme-opt" id="themeOptDark" onclick="setTheme('dark')">
+            <div class="theme-opt-preview dark-preview">
+              <div class="tp-sidebar"></div>
+              <div class="tp-main">
+                <div class="tp-bar"></div>
+                <div class="tp-card"></div>
+                <div class="tp-card short"></div>
+              </div>
+            </div>
+            <div class="theme-opt-label"><i class="fa-solid fa-moon"></i> Oscuro</div>
+            <div class="theme-opt-check" id="checkDark"><i class="fa-solid fa-check"></i></div>
+          </button>
+          <button class="theme-opt" id="themeOptLight" onclick="setTheme('light')">
+            <div class="theme-opt-preview light-preview">
+              <div class="tp-sidebar"></div>
+              <div class="tp-main">
+                <div class="tp-bar"></div>
+                <div class="tp-card"></div>
+                <div class="tp-card short"></div>
+              </div>
+            </div>
+            <div class="theme-opt-label"><i class="fa-solid fa-sun"></i> Claro</div>
+            <div class="theme-opt-check" id="checkLight"><i class="fa-solid fa-check"></i></div>
+          </button>
+        </div>
+      </div>
+      <div class="glass-card" style="background:linear-gradient(160deg,rgba(168,85,247,0.1) 0%,rgba(8,12,18,0.85) 55%);border-color:rgba(168,85,247,0.15);animation:settingIn 0.4s cubic-bezier(0.22,1,0.36,1) 0.05s both">
+        <div class="card-head"><div><div class="card-title"><i class="fa-solid fa-tags" style="color:var(--purple2);margin-right:8px"></i>Tipos de negocio</div><div class="card-sub">Categorías para clasificar tus contactos</div></div></div>
+        <div id="bizTypesList" class="chips-list"></div>
+        <div class="chip-add-row">
+          <input type="text" id="newBizType" placeholder="Nuevo tipo de negocio...">
+          <button class="btn-sm-primary" id="addBizTypeBtn">Agregar</button>
+        </div>
+      </div>
+      <div class="glass-card" style="background:linear-gradient(160deg,rgba(79,142,255,0.08) 0%,rgba(8,12,18,0.85) 55%);border-color:rgba(79,142,255,0.12);animation:settingIn 0.4s cubic-bezier(0.22,1,0.36,1) 0.12s both">
+        <div class="card-head"><div><div class="card-title"><i class="fa-solid fa-database" style="color:var(--blue2);margin-right:8px"></i>Datos</div><div class="card-sub">Importa, exporta o reinicia tu información</div></div></div>
+        <div class="settings-actions">
+          <button class="settings-btn export" id="exportCSV">
+            <div class="settings-btn-icon"><i class="fa-solid fa-download"></i></div>
+            <span>Exportar CSV</span>
+          </button>
+          <label class="settings-btn import" for="importCSV">
+            <div class="settings-btn-icon"><i class="fa-solid fa-upload"></i></div>
+            <span>Importar CSV</span>
+            <input type="file" id="importCSV" accept=".csv" style="display:none">
+          </label>
+          <button class="settings-btn accent" id="loadSample">
+            <div class="settings-btn-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+            <span>Cargar datos de ejemplo</span>
+          </button>
+          <button class="settings-btn danger" id="clearData">
+            <div class="settings-btn-icon"><i class="fa-solid fa-trash"></i></div>
+            <span>Limpiar datos</span>
+          </button>
+          <button class="settings-btn" onclick="logout()" style="border-left:3px solid #6B7A99">
+            <div class="settings-btn-icon"><i class="fa-solid fa-right-from-bracket"></i></div>
+            <span>Cerrar sesión</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+</div>
+
+<!-- DETAIL PANEL (global, fuera de secciones) -->
+<div class="dp" id="detailPanel">
+  <div class="dp-header">
+    <button class="dp-close" id="detailClose"><i class="fa-solid fa-xmark"></i></button>
+    <div class="dp-avatar" id="dAvatar">R</div>
+    <div class="dp-name" id="dName">Nombre</div>
+    <div class="dp-meta" id="dType">Tipo · Ubicación</div>
+    <div class="dp-value-badge" id="dValueBadge"></div>
+    <div class="dp-call-btn-wrap">
+      <a href="#" class="dp-call-btn" id="dCall"><i class="fa-solid fa-phone"></i> Llamar ahora</a>
+      <a href="#" class="dp-wa-btn" id="dWA"><i class="fa-brands fa-whatsapp"></i></a>
+    </div>
+  </div>
+  <div class="dp-body">
+    <div class="dp-section">
+      <div class="dp-section-label">Estado del contacto</div>
+      <select id="dStatus" class="dp-status-select"></select>
+    </div>
+    <div class="dp-section">
+      <div class="dp-section-label">Próxima acción</div>
+      <div class="dp-next-action" id="dNextAction">
+        <i class="fa-solid fa-calendar-check"></i>
+        <span id="dNextActionText">Sin seguimiento programado</span>
+      </div>
+    </div>
+    <div class="dp-section">
+      <div class="dp-section-label">Detalles</div>
+      <div class="dp-details-grid">
+        <div class="dp-detail"><i class="fa-solid fa-location-dot"></i><span id="dLocation">—</span></div>
+        <div class="dp-detail"><i class="fa-solid fa-globe"></i><span id="dWebsite">—</span></div>
+        <div class="dp-detail"><i class="fa-solid fa-phone"></i><span id="dPhone">—</span></div>
+        <div class="dp-detail"><i class="fa-solid fa-dollar-sign"></i><span id="dValue">—</span></div>
+      </div>
+    </div>
+    <div class="dp-section">
+      <div class="dp-section-label">Probabilidad de cierre</div>
+      <div class="dp-prob-bar-wrap"><div class="dp-prob-bar" id="dProbBar"></div></div>
+      <div class="dp-prob-label" id="dProbLabel">—</div>
+    </div>
+    <div class="dp-section">
+      <div class="dp-section-label">Etiquetas</div>
+      <div id="dTags" class="dp-tags"></div>
+    </div>
+    <div class="dp-section">
+      <div class="dp-section-label">Notas</div>
+      <div id="dNotes" class="dp-notes"></div>
+    </div>
+    <div class="dp-section">
+      <div class="dp-section-label">Historial de interacciones</div>
+      <div id="dHistory" class="dp-history"></div>
+    </div>
+    <div class="dp-footer">
+      <button class="dp-btn-edit" id="dEdit"><i class="fa-solid fa-pen"></i> Editar</button>
+      <button class="dp-btn-delete" id="dDelete"><i class="fa-solid fa-trash"></i></button>
+    </div>
+  </div>
+</div>
+<div class="panel-overlay" id="panelOverlay"></div>
+
+<!-- FAB -->
+<button class="fab" id="fabBtn"><i class="fa-solid fa-plus"></i></button>
+
+<!-- MODAL CONTACTO -->
+<div class="modal-bg" id="contactModal">
+  <div class="modal modal-contact">
+    <div class="modal-hd contact-modal-hd">
+      <div class="contact-modal-hd-icon"><i class="fa-solid fa-user-plus"></i></div>
+      <div>
+        <div class="modal-title" id="modalTitle">Nuevo Contacto</div>
+        <div class="modal-subtitle">Completa los datos del negocio</div>
+      </div>
+      <button class="modal-x" id="closeContactModal"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-bd">
+
+      <!-- SECCIÓN: Información principal -->
+      <div class="form-section">
+        <div class="form-section-label"><i class="fa-solid fa-store"></i> Información principal</div>
+        <div class="form-row">
+          <div class="fg full">
+            <label>Nombre del negocio *</label>
+            <div class="fg-input-wrap">
+              <i class="fa-solid fa-store fg-icon"></i>
+              <input type="text" id="fName" placeholder="Ej: Restaurante El Buen Sabor">
+            </div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="fg">
+            <label>Teléfono *</label>
+            <div class="fg-input-wrap">
+              <i class="fa-solid fa-phone fg-icon"></i>
+              <input type="tel" id="fPhone" placeholder="+52 55 1234 5678">
+            </div>
+          </div>
+          <div class="fg">
+            <label>Ubicación</label>
+            <div class="fg-input-wrap">
+              <i class="fa-solid fa-location-dot fg-icon"></i>
+              <input type="text" id="fLocation" placeholder="Ciudad, Estado">
+            </div>
+          </div>
+        </div>
+        <div id="phoneDupWarn" class="phone-dup-warn" style="display:none"></div>
+      </div>
+
+      <!-- SECCIÓN: Clasificación -->
+      <div class="form-section">
+        <div class="form-section-label"><i class="fa-solid fa-tags"></i> Clasificación</div>
+        <div class="form-row">
+          <div class="fg">
+            <label>Tipo de negocio</label>
+            <div class="fg-input-wrap">
+              <i class="fa-solid fa-briefcase fg-icon"></i>
+              <select id="fType"></select>
+            </div>
+          </div>
+          <div class="fg">
+            <label>Estado</label>
+            <div class="fg-input-wrap fg-input-wrap-select">
+              <select id="fStatus">
+                <option>Nuevo</option>
+                <option>Llamado</option>
+                <option>Interesado</option>
+                <option>Cerrado</option>
+                <option>No interesado</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="fg">
+            <label>¿Tiene sitio web?</label>
+            <div class="fg-input-wrap fg-input-wrap-select">
+              <select id="fWebsite">
+                <option value="No">No tiene</option>
+                <option value="Sí">Sí tiene</option>
+              </select>
+            </div>
+          </div>
+          <div class="fg">
+            <label>Valor estimado ($)</label>
+            <div class="fg-input-wrap">
+              <i class="fa-solid fa-dollar-sign fg-icon"></i>
+              <input type="number" id="fValue" placeholder="0">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECCIÓN: Extras -->
+      <div class="form-section">
+        <div class="form-section-label"><i class="fa-solid fa-circle-info"></i> Detalles adicionales</div>
+        <div class="fg full">
+          <label>Etiquetas <span style="opacity:0.5;font-weight:400;text-transform:none;letter-spacing:0">(separadas por coma)</span></label>
+          <div class="fg-input-wrap">
+            <i class="fa-solid fa-tag fg-icon"></i>
+            <input type="text" id="fTags" placeholder="urgente, premium, referido">
+          </div>
+        </div>
+        <div class="fg full">
+          <label>Notas</label>
+          <textarea id="fNotes" rows="3" placeholder="Observaciones, horario de contacto, detalles importantes..."></textarea>
+        </div>
+      </div>
+
+    </div>
+    <div class="modal-ft">
+      <button class="btn-ghost" id="cancelContact"><i class="fa-solid fa-xmark"></i> Cancelar</button>
+      <button class="btn-primary" id="saveContact"><i class="fa-solid fa-check"></i> Guardar contacto</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PEGADO INTELIGENTE -->
+<div class="modal-bg" id="pasteModal">
+  <div class="modal modal-paste">
+    <div class="modal-hd paste-modal-hd">
+      <div class="paste-modal-hd-icon"><i class="fa-solid fa-paste"></i></div>
+      <div>
+        <div class="modal-title">Pegado inteligente</div>
+        <div class="modal-subtitle">Pega texto de Google Maps u otra fuente</div>
+      </div>
+      <button class="modal-x" id="closePasteModal"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-bd">
+
+      <!-- PASO 1: textarea -->
+      <div id="pasteStep1">
+        <div class="paste-area-wrap">
+          <textarea id="pasteRawText" class="paste-textarea" rows="7"
+            placeholder="Pega aquí el texto copiado de Google Maps, directorios, etc.
+
+Ejemplo:
+Restaurante El Buen Sabor
+4.5 ★ (128 reseñas) · Restaurante mexicano
+Av. Insurgentes Sur 1234, Col. Del Valle, CDMX
++52 55 1234 5678
+Abierto · Cierra a las 10 PM"></textarea>
+          <div class="paste-area-hint"><i class="fa-solid fa-lightbulb"></i> Ctrl+V para pegar · La app detecta nombre, teléfono y dirección automáticamente</div>
+        </div>
+        <div class="paste-step1-actions">
+          <button class="btn-ghost" id="cancelPaste1"><i class="fa-solid fa-xmark"></i> Cancelar</button>
+          <button class="btn-primary" id="analyzePasteBtn"><i class="fa-solid fa-wand-magic-sparkles"></i> Analizar texto</button>
+        </div>
+      </div>
+
+      <!-- PASO 2: preview editable -->
+      <div id="pasteStep2" style="display:none">
+        <div class="paste-preview-header">
+          <div class="paste-preview-badge"><i class="fa-solid fa-check-circle"></i> Datos detectados</div>
+          <button class="paste-back-btn" id="pasteBackBtn"><i class="fa-solid fa-arrow-left"></i> Volver</button>
+        </div>
+
+        <!-- Alerta sin teléfono -->
+        <div id="pasteNoPhoneWarn" class="paste-warn" style="display:none">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <span>No se detectó teléfono — agrégalo manualmente antes de guardar</span>
+        </div>
+        <!-- Alerta duplicado -->
+        <div id="pasteDupWarn" class="paste-warn paste-warn-dup" style="display:none">
+          <i class="fa-solid fa-copy"></i>
+          <span id="pasteDupWarnText">Este número ya existe en un contacto</span>
+          <button id="pasteDupConfirmBtn" class="paste-warn-btn">Guardar igual</button>
+        </div>
+
+        <div class="paste-fields">
+          <div class="paste-field-row">
+            <div class="paste-field-icon" style="background:rgba(168,85,247,0.15);color:var(--purple2)"><i class="fa-solid fa-store"></i></div>
+            <div class="paste-field-body">
+              <label class="paste-field-label">Nombre del negocio *</label>
+              <input type="text" id="pfName" class="paste-field-input" placeholder="Nombre del negocio">
+            </div>
+            <div class="paste-field-confidence" id="pfNameConf"></div>
+          </div>
+          <div class="paste-field-row">
+            <div class="paste-field-icon" style="background:rgba(30,217,138,0.12);color:var(--green)"><i class="fa-solid fa-phone"></i></div>
+            <div class="paste-field-body">
+              <label class="paste-field-label">Teléfono *</label>
+              <input type="tel" id="pfPhone" class="paste-field-input" placeholder="+52 55 1234 5678">
+            </div>
+            <div class="paste-field-confidence" id="pfPhoneConf"></div>
+          </div>
+          <div class="paste-field-row">
+            <div class="paste-field-icon" style="background:rgba(79,142,255,0.12);color:var(--blue2)"><i class="fa-solid fa-location-dot"></i></div>
+            <div class="paste-field-body">
+              <label class="paste-field-label">Ubicación</label>
+              <input type="text" id="pfLocation" class="paste-field-input" placeholder="Ciudad, Estado">
+            </div>
+            <div class="paste-field-confidence" id="pfLocationConf"></div>
+          </div>
+          <div class="paste-field-row">
+            <div class="paste-field-icon" style="background:rgba(255,140,66,0.12);color:var(--orange)"><i class="fa-solid fa-briefcase"></i></div>
+            <div class="paste-field-body">
+              <label class="paste-field-label">Tipo de negocio</label>
+              <select id="pfType" class="paste-field-input"></select>
+            </div>
+            <div class="paste-field-confidence" id="pfTypeConf"></div>
+          </div>
+        </div>
+
+        <!-- Raw text colapsable -->
+        <details class="paste-raw-details">
+          <summary>Ver texto original</summary>
+          <pre id="pasteRawPreview" class="paste-raw-pre"></pre>
+        </details>
+
+        <div class="paste-step2-actions">
+          <button class="btn-ghost" id="cancelPaste2"><i class="fa-solid fa-xmark"></i> Cancelar</button>
+          <button class="btn-primary paste-confirm-btn" id="confirmPasteBtn"><i class="fa-solid fa-user-plus"></i> Confirmar y guardar contacto</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- MODAL EVENTO -->
+<div class="modal-bg" id="eventModal">
+  <div class="modal modal-sm">
+    <div class="modal-hd">
+      <div class="modal-title" id="eventModalTitle">Nuevo Evento</div>
+      <button class="modal-x" id="closeEventModal"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-bd">
+      <div class="fg full"><label>Título *</label><input type="text" id="eTitle" placeholder="Llamada de seguimiento..."></div>
+      <div class="form-row">
+        <div class="fg"><label>Fecha</label><input type="date" id="eDate"></div>
+        <div class="fg"><label>Hora</label><input type="time" id="eTime"></div>
+      </div>
+      <div class="fg full"><label>Tipo</label><select id="eType"><option value="llamada">Llamada</option><option value="seguimiento">Seguimiento</option><option value="reunion">Reunión</option><option value="tarea">Tarea</option></select></div>
+      <div class="fg full"><label>Notas</label><textarea id="eNotes" rows="2"></textarea></div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn-ghost" id="cancelEvent">Cancelar</button>
+      <button class="btn-primary" id="saveEvent"><i class="fa-solid fa-check"></i> Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL GUION -->
+<div class="modal-bg" id="scriptModal">
+  <div class="modal modal-sm">
+    <div class="modal-hd">
+      <div class="modal-title">Nuevo Guion</div>
+      <button class="modal-x" id="closeScriptModal"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-bd">
+      <div class="fg full"><label>Título *</label><input type="text" id="sTitle" placeholder="Nombre del guion"></div>
+      <div class="fg full"><label>Categoría</label><select id="sCategory"><option>Primer contacto</option><option>Seguimiento</option><option>Cierre</option><option>Objeciones</option></select></div>
+      <div class="fg full"><label>Contenido</label><textarea id="sContent" rows="7" placeholder="Escribe el guion aquí..."></textarea></div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn-ghost" id="cancelScript">Cancelar</button>
+      <button class="btn-primary" id="saveScript"><i class="fa-solid fa-check"></i> Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- NOTIF PANEL -->
+<div class="modal-bg" id="notifModal">
+  <div class="modal modal-sm">
+    <div class="modal-hd">
+      <div class="modal-title"><i class="fa-solid fa-bell"></i> Notificaciones</div>
+      <button class="modal-x" id="closeNotif"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-bd" id="notifList"></div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<!-- MODAL POST-LLAMADA -->
+<div class="modal-bg" id="postCallModal">
+  <div class="modal modal-postcall">
+
+    <!-- PASO 1: resultado -->
+    <div id="pcStep1">
+      <div class="pc-header">
+        <div class="pc-avatar" id="pcAvatar"></div>
+        <div class="pc-info">
+          <div class="pc-name" id="pcName"></div>
+          <div class="pc-phone" id="pcPhone"></div>
+        </div>
+      </div>
+      <div class="pc-question">¿Cómo fue la llamada?</div>
+      <div class="pc-options" id="pcOptions">
+        <button class="pc-opt" data-result="Interesado"      style="--c:#A855F7;--bg:rgba(168,85,247,0.12)"><i class="fa-solid fa-fire"></i><span>Interesado</span></button>
+        <button class="pc-opt" data-result="Llamar luego"    style="--c:#FFD166;--bg:rgba(255,209,102,0.12)"><i class="fa-solid fa-clock-rotate-left"></i><span>Llamar luego</span></button>
+        <button class="pc-opt" data-result="No contestó"     style="--c:#4F8EFF;--bg:rgba(79,142,255,0.12)"><i class="fa-solid fa-phone-slash"></i><span>No contestó</span></button>
+        <button class="pc-opt" data-result="No interesado"   style="--c:#FF4D6A;--bg:rgba(255,77,106,0.12)"><i class="fa-solid fa-xmark"></i><span>No interesado</span></button>
+        <button class="pc-opt" data-result="Número incorrecto" style="--c:#FF8C42;--bg:rgba(255,140,66,0.12)"><i class="fa-solid fa-triangle-exclamation"></i><span>Número incorrecto</span></button>
+        <button class="pc-opt" data-result="Cerrado"         style="--c:#22D98A;--bg:rgba(34,217,138,0.12)"><i class="fa-solid fa-handshake"></i><span>¡Cerrado!</span></button>
+      </div>
+      <button class="pc-skip" id="pcSkip">Omitir</button>
+    </div>
+
+    <!-- PASO 2: agendar (para "Llamar luego" e "Interesado") -->
+    <div id="pcStep2" style="display:none">
+      <div class="pc-step2-header">
+        <div class="pc-step2-icon" id="pcStep2Icon"></div>
+        <div>
+          <div class="pc-step2-title" id="pcStep2Title"></div>
+          <div class="pc-step2-sub" id="pcStep2Sub"></div>
+        </div>
+      </div>
+      <div class="pc-schedule">
+        <div class="pc-schedule-row">
+          <div class="pc-schedule-field">
+            <label><i class="fa-solid fa-calendar"></i> Fecha</label>
+            <input type="date" id="pcDate">
+          </div>
+          <div class="pc-schedule-field">
+            <label><i class="fa-solid fa-clock"></i> Hora</label>
+            <input type="time" id="pcTime">
+          </div>
+        </div>
+        <div class="pc-schedule-field full">
+          <label><i class="fa-solid fa-note-sticky"></i> Nota (opcional)</label>
+          <input type="text" id="pcNote" placeholder="Ej: Llamar por la tarde, preguntó por precio...">
+        </div>
+      </div>
+      <div class="pc-step2-actions">
+        <button class="btn-ghost" id="pcSkipSchedule">Guardar sin agendar</button>
+        <button class="btn-primary pc-confirm-btn" id="pcConfirmSchedule"><i class="fa-solid fa-calendar-plus"></i> Agendar y guardar</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- CALL PICKER (móvil) -->
+<div class="call-picker-overlay" id="callPickerOverlay"></div>
+<div class="call-picker" id="callPicker">
+  <div class="call-picker-handle"></div>
+  <div class="call-picker-name" id="callPickerName"></div>
+  <div class="call-picker-phone" id="callPickerPhone"></div>
+  <div class="call-picker-options" id="callPickerOptions"></div>
+  <button class="call-picker-cancel" id="callPickerCancel">Cancelar</button>
+</div>
+
+<!-- MOBILE BOTTOM NAV -->
+<nav class="mobile-nav" id="mobileNav">
+  <button class="mobile-nav-item active" data-section="dashboard">
+    <i class="fa-solid fa-chart-pie"></i>
+    <span>Inicio</span>
+  </button>
+  <button class="mobile-nav-item" data-section="contactos">
+    <i class="fa-solid fa-address-book"></i>
+    <span>Contactos</span>
+    <div class="mob-badge" id="mobContactBadge"></div>
+  </button>
+  <button class="mobile-nav-item" data-section="calendario">
+    <i class="fa-solid fa-calendar-days"></i>
+    <span>Agenda</span>
+  </button>
+  <button class="mobile-nav-item" data-section="metricas">
+    <i class="fa-solid fa-chart-line"></i>
+    <span>Métricas</span>
+  </button>
+  <button class="mobile-nav-item" data-section="retos">
+    <i class="fa-solid fa-fire-flame-curved"></i>
+    <span>Retos</span>
+  </button>
+  <button class="mobile-nav-item" data-section="ajustes">
+    <i class="fa-solid fa-sliders"></i>
+    <span>Ajustes</span>
+  </button>
+</nav>
+
+<script src="app.js"></script>
+</body>
+</html>

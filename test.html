@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CRM - Diagnóstico</title>
+<style>
+  body { font-family: monospace; background: #080C12; color: #EEF2FF; padding: 20px; font-size: 13px; }
+  .ok  { color: #22D98A; }
+  .err { color: #FF4D6A; font-weight: bold; }
+  .warn{ color: #FFD166; }
+  h2   { color: #82AEFF; margin: 16px 0 8px; }
+  pre  { background: #0E1420; padding: 10px; border-radius: 8px; overflow-x: auto; white-space: pre-wrap; word-break: break-all; }
+  .btn { background: #7C3AED; color: #fff; border: none; padding: 12px 20px; border-radius: 10px; font-size: 14px; cursor: pointer; margin: 8px 4px; }
+</style>
+</head>
+<body>
+<h1>🔍 Diagnóstico CRM</h1>
+<div id="out"></div>
+<button class="btn" onclick="runAll()">▶ Ejecutar diagnóstico</button>
+<button class="btn" onclick="location.href='/'">🏠 Ir a la app</button>
+
+<script>
+const log = (msg, type='') => {
+  const d = document.getElementById('out');
+  const p = document.createElement('pre');
+  p.className = type;
+  p.textContent = msg;
+  d.appendChild(p);
+};
+
+function runAll() {
+  document.getElementById('out').innerHTML = '';
+  log('=== DIAGNÓSTICO CRM ===');
+  log('Fecha: ' + new Date().toLocaleString());
+  log('UserAgent: ' + navigator.userAgent);
+  log('');
+
+  // 1. Check localStorage
+  try {
+    localStorage.setItem('_test', '1');
+    localStorage.removeItem('_test');
+    log('✓ localStorage: OK', 'ok');
+  } catch(e) {
+    log('✗ localStorage: ' + e.message, 'err');
+  }
+
+  // 2. Check existing data
+  try {
+    const raw = localStorage.getItem('vp_crm');
+    if(raw) {
+      const d = JSON.parse(raw);
+      log('✓ Datos guardados: ' + (d.contacts||[]).length + ' contactos, ' + (d.events||[]).length + ' eventos', 'ok');
+      log('  archive: ' + (d.archive||[]).length + ' | scripts: ' + (d.scripts||[]).length);
+    } else {
+      log('⚠ No hay datos guardados en localStorage', 'warn');
+    }
+  } catch(e) {
+    log('✗ Error leyendo datos: ' + e.message, 'err');
+  }
+
+  // 3. Check Chart.js
+  const chartScript = document.createElement('script');
+  chartScript.src = 'https://cdn.jsdelivr.net/npm/chart.js';
+  chartScript.onload = () => {
+    log('✓ Chart.js cargado: v' + Chart.version, 'ok');
+    checkFontAwesome();
+  };
+  chartScript.onerror = () => {
+    log('✗ Chart.js NO cargó (sin internet?)', 'err');
+    checkFontAwesome();
+  };
+  document.head.appendChild(chartScript);
+
+  // 4. Check app.js syntax by loading it
+  const appScript = document.createElement('script');
+  appScript.src = '/app.js';
+  appScript.onload = () => log('✓ app.js cargó sin errores de sintaxis', 'ok');
+  appScript.onerror = (e) => log('✗ app.js ERROR al cargar: ' + JSON.stringify(e), 'err');
+  document.head.appendChild(appScript);
+}
+
+function checkFontAwesome() {
+  const link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css';
+  link.onload = () => log('✓ FontAwesome cargó', 'ok');
+  link.onerror = () => log('✗ FontAwesome NO cargó', 'err');
+  document.head.appendChild(link);
+}
+
+// Auto-run
+window.onload = () => {
+  // Catch global errors
+  window.onerror = (msg, src, line, col, err) => {
+    log('✗ ERROR GLOBAL: ' + msg + '\n  en: ' + src + ':' + line + ':' + col, 'err');
+    if(err && err.stack) log('  Stack: ' + err.stack.slice(0,300), 'err');
+  };
+  window.onunhandledrejection = e => {
+    log('✗ Promise rechazada: ' + e.reason, 'err');
+  };
+  runAll();
+};
+</script>
+</body>
+</html>
