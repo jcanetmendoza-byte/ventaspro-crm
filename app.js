@@ -96,8 +96,15 @@ const load = () => {
 };
 
 async function loadFromFirestore(uid2) {
+  // Timeout de 5s — si Firestore no responde (VPN/red lenta) usamos localStorage
+  const timeout = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error('Firestore timeout')), 5000)
+  );
   try {
-    const doc = await db.collection('users').doc(uid2).get();
+    const doc = await Promise.race([
+      db.collection('users').doc(uid2).get(),
+      timeout
+    ]);
     if(doc.exists) {
       const p = doc.data();
       S.contacts     = p.contacts     || S.contacts;
@@ -110,11 +117,11 @@ async function loadFromFirestore(uid2) {
       S.retos        = p.retos        || S.retos;
       S.selDate      = new Date();
       S.calDate      = new Date();
-      // Also update localStorage cache
       localStorage.setItem('vp_crm', JSON.stringify(S));
     }
   } catch(e) {
-    console.warn('Firestore load error:', e);
+    console.warn('Firestore load error (usando localStorage):', e.message);
+    // La app sigue funcionando con los datos del localStorage ya cargados en load()
   }
 }
 
@@ -252,22 +259,24 @@ window.addEventListener('load', () => {
       if(nameEl)   nameEl.textContent   = user.displayName || user.email;
       if(avatarEl) avatarEl.textContent = (user.displayName || user.email).charAt(0).toUpperCase();
 
-      try { await loadFromFirestore(user.uid); } catch(e) { console.warn(e); }
-
+      // Arrancar la app YA con datos de localStorage, sin bloquear en Firestore
       document.getElementById('loginScreen').style.display = 'none';
-
       if(!window._appInited) {
         window._appInited = true;
         try { initAll(); } catch(e) { console.error('initAll:', e); }
       } else {
         try { renderAll(); } catch(e) { console.error('renderAll:', e); }
       }
-
       hideLoader();
+
+      // Sincronizar con Firestore en segundo plano
+      loadFromFirestore(user.uid).then(() => {
+        try { renderAll(); } catch(e) {}
+      }).catch(e => console.warn('bg sync error:', e));
+
     } else {
       _currentUser = null;
       window._appInited = false;
-      // Si hay un redirect pendiente, no mostrar login todavía
       if(_pendingRedirect) return;
       hideLoader();
       document.getElementById('loginScreen').style.display = 'flex';
