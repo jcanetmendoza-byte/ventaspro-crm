@@ -236,7 +236,8 @@ window.addEventListener('load', () => {
   const pwField = document.getElementById('loginPassword');
   if(pwField) pwField.addEventListener('keydown', e => { if(e.key==='Enter' && loginBtn) loginBtn.click(); });
 
-  // Google login — popup en PC, redirect en móvil
+  // Google login — popup en todos los dispositivos
+  // (redirect falla en Cuba/VPN porque la conexión se interrumpe durante el proceso)
   const isMobile = /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent);
   const googleBtn = document.getElementById('loginGoogleBtn');
   if(googleBtn) {
@@ -245,31 +246,21 @@ window.addEventListener('load', () => {
       note.textContent = 'Conectando con Google...';
       googleBtn.disabled = true;
       const provider = new firebase.auth.GoogleAuthProvider();
-      if(isMobile) {
-        sessionStorage.setItem('pendingGoogleRedirect', '1');
-        auth.signInWithRedirect(provider).catch(err => {
-          sessionStorage.removeItem('pendingGoogleRedirect');
+      auth.signInWithPopup(provider)
+        .then(() => { note.textContent = ''; })
+        .catch(err => {
           console.error('Google auth error:', err.code, err.message);
           note.textContent = err.code + ': ' + err.message;
           googleBtn.disabled = false;
         });
-      } else {
-        auth.signInWithPopup(provider)
-          .then(() => { note.textContent = ''; })
-          .catch(err => {
-            console.error('Google auth error:', err.code, err.message);
-            note.textContent = err.code + ': ' + err.message;
-            googleBtn.disabled = false;
-          });
-      }
     });
   }
 
   // Auth state — esperamos getRedirectResult primero para evitar
   // el flash de login en móvil después de un redirect de Google
   let _redirectHandled = false;
-  // Si venimos de un redirect de Google, Firebase pone este flag en la sesión
-  const _pendingRedirect = sessionStorage.getItem('pendingGoogleRedirect') === '1';
+  const _pendingRedirect = false; // ya no usamos redirect
+  sessionStorage.removeItem('pendingGoogleRedirect'); // limpiar flags viejos
 
   auth.getRedirectResult().then(result => {
     _dbg('getRedirectResult OK - user: ' + (result && result.user ? result.user.email : 'none'));
