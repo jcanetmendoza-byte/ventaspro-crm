@@ -204,7 +204,9 @@ window.addEventListener('load', () => {
       googleBtn.disabled = true;
       const provider = new firebase.auth.GoogleAuthProvider();
       if(isMobile) {
+        sessionStorage.setItem('pendingGoogleRedirect', '1');
         auth.signInWithRedirect(provider).catch(err => {
+          sessionStorage.removeItem('pendingGoogleRedirect');
           console.error('Google auth error:', err.code, err.message);
           note.textContent = err.code + ': ' + err.message;
           googleBtn.disabled = false;
@@ -221,11 +223,19 @@ window.addEventListener('load', () => {
     });
   }
 
-  // Manejar resultado del redirect de Google al volver
+  // Auth state — esperamos getRedirectResult primero para evitar
+  // el flash de login en móvil después de un redirect de Google
+  let _redirectHandled = false;
+  // Si venimos de un redirect de Google, Firebase pone este flag en la sesión
+  const _pendingRedirect = sessionStorage.getItem('pendingGoogleRedirect') === '1';
+
   auth.getRedirectResult().then(result => {
-    // onAuthStateChanged lo maneja automáticamente
+    _redirectHandled = true;
+    sessionStorage.removeItem('pendingGoogleRedirect');
   }).catch(err => {
-    if(err.code && err.code !== 'auth/no-current-user') {
+    _redirectHandled = true;
+    sessionStorage.removeItem('pendingGoogleRedirect');
+    if(err.code && err.code !== 'auth/no-current-user' && err.code !== 'auth/network-request-failed') {
       const note = document.getElementById('loginNote');
       if(note) note.textContent = err.message;
     }
@@ -257,6 +267,8 @@ window.addEventListener('load', () => {
     } else {
       _currentUser = null;
       window._appInited = false;
+      // Si hay un redirect pendiente, no mostrar login todavía
+      if(_pendingRedirect) return;
       hideLoader();
       document.getElementById('loginScreen').style.display = 'flex';
     }
