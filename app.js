@@ -194,7 +194,8 @@ window.addEventListener('load', () => {
   const pwField = document.getElementById('loginPassword');
   if(pwField) pwField.addEventListener('keydown', e => { if(e.key==='Enter' && loginBtn) loginBtn.click(); });
 
-  // Google login — popup siempre (más confiable con ngrok)
+  // Google login — popup en PC, redirect en móvil
+  const isMobile = /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent);
   const googleBtn = document.getElementById('loginGoogleBtn');
   if(googleBtn) {
     googleBtn.addEventListener('click', () => {
@@ -202,13 +203,21 @@ window.addEventListener('load', () => {
       note.textContent = 'Conectando con Google...';
       googleBtn.disabled = true;
       const provider = new firebase.auth.GoogleAuthProvider();
-      auth.signInWithPopup(provider)
-        .then(() => { note.textContent = ''; })
-        .catch(err => {
+      if(isMobile) {
+        auth.signInWithRedirect(provider).catch(err => {
           console.error('Google auth error:', err.code, err.message);
           note.textContent = err.code + ': ' + err.message;
           googleBtn.disabled = false;
         });
+      } else {
+        auth.signInWithPopup(provider)
+          .then(() => { note.textContent = ''; })
+          .catch(err => {
+            console.error('Google auth error:', err.code, err.message);
+            note.textContent = err.code + ': ' + err.message;
+            googleBtn.disabled = false;
+          });
+      }
     });
   }
 
