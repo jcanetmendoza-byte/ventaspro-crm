@@ -9,6 +9,33 @@ let S = {
   selDate: new Date(), calDate: new Date(),
 };
 
+// ── DEBUG PANEL (móvil) ──
+const _dbg = (() => {
+  const el = document.createElement('div');
+  el.id = '_dbg';
+  el.style.cssText = `
+    position:fixed;bottom:0;left:0;right:0;max-height:40vh;overflow-y:auto;
+    background:rgba(0,0,0,0.92);color:#0f0;font:11px monospace;
+    padding:8px;z-index:99999;display:none;border-top:2px solid #0f0;
+  `;
+  const closeBtn = document.createElement('button');
+  closeBtn.textContent = '✕ cerrar';
+  closeBtn.style.cssText = 'position:sticky;top:0;float:right;background:#333;color:#fff;border:none;padding:2px 8px;cursor:pointer;font-size:11px;';
+  closeBtn.onclick = () => el.style.display = 'none';
+  el.appendChild(closeBtn);
+  document.body.appendChild(el);
+
+  return (msg, color) => {
+    el.style.display = 'block';
+    const line = document.createElement('div');
+    line.style.color = color || '#0f0';
+    line.textContent = new Date().toISOString().substr(11,8) + ' ' + msg;
+    el.appendChild(line);
+    el.scrollTop = el.scrollHeight;
+    console.log('[DBG]', msg);
+  };
+})();
+
 // ── BUSINESS TYPE COLORS & ICONS ──
 const BIZ_STYLES = {
   'Restaurante':       { color:'#FF8C42', bg:'rgba(255,140,66,0.14)',  icon:'fa-solid fa-utensils'         },
@@ -139,6 +166,8 @@ const getColor = name => {
 
 // ── LOADER & AUTH ──
 window.addEventListener('load', () => {
+  _dbg('window load - isMobile: ' + /Android|iPhone|iPad|iPod/i.test(navigator.userAgent));
+  _dbg('pendingRedirect: ' + sessionStorage.getItem('pendingGoogleRedirect'));
   const savedTheme = localStorage.getItem('vp_theme') || 'dark';
   applyTheme(savedTheme, false);
 
@@ -146,15 +175,16 @@ window.addEventListener('load', () => {
 
   // Siempre ocultar loader después de 4s como máximo
   const hideLoader = () => {
+    _dbg('hideLoader called');
     const loader = document.getElementById('loader');
+    if(!loader) return;
     loader.classList.add('hide');
-    // En móvil removemos el loader del DOM para que no bloquee toques
     setTimeout(() => {
       if(loader.parentNode) loader.parentNode.removeChild(loader);
     }, 700);
     document.getElementById('app').style.opacity = '1';
   };
-  const loaderTimeout = setTimeout(hideLoader, 4000);
+  const loaderTimeout = setTimeout(() => { _dbg('loaderTimeout fired', '#ff0'); hideLoader(); }, 4000);
 
 
   // Login con email/contraseña
@@ -242,9 +272,11 @@ window.addEventListener('load', () => {
   const _pendingRedirect = sessionStorage.getItem('pendingGoogleRedirect') === '1';
 
   auth.getRedirectResult().then(result => {
+    _dbg('getRedirectResult OK - user: ' + (result && result.user ? result.user.email : 'none'));
     _redirectHandled = true;
     sessionStorage.removeItem('pendingGoogleRedirect');
   }).catch(err => {
+    _dbg('getRedirectResult ERR: ' + err.code, '#f88');
     _redirectHandled = true;
     sessionStorage.removeItem('pendingGoogleRedirect');
     if(err.code && err.code !== 'auth/no-current-user' && err.code !== 'auth/network-request-failed') {
@@ -256,6 +288,7 @@ window.addEventListener('load', () => {
   // Auth state
   auth.onAuthStateChanged(async user => {
     clearTimeout(loaderTimeout);
+    _dbg('onAuthStateChanged - user: ' + (user ? user.email : 'null'));
     if(user) {
       _currentUser = user;
 
@@ -264,29 +297,31 @@ window.addEventListener('load', () => {
       if(nameEl)   nameEl.textContent   = user.displayName || user.email;
       if(avatarEl) avatarEl.textContent = (user.displayName || user.email).charAt(0).toUpperCase();
 
-      // Arrancar la app YA con datos de localStorage, sin bloquear en Firestore
       const loginScreen = document.getElementById('loginScreen');
       if(loginScreen) loginScreen.style.display = 'none';
-      // Remover loginScreen del DOM para que no bloquee toques en móvil
       setTimeout(() => {
         if(loginScreen && loginScreen.parentNode) loginScreen.parentNode.removeChild(loginScreen);
       }, 500);
+
+      _dbg('iniciando app...');
       if(!window._appInited) {
         window._appInited = true;
-        try { initAll(); } catch(e) { console.error('initAll:', e); }
+        try { initAll(); _dbg('initAll OK', '#0ff'); } catch(e) { _dbg('initAll ERR: ' + e.message, '#f00'); console.error('initAll:', e); }
       } else {
-        try { renderAll(); } catch(e) { console.error('renderAll:', e); }
+        try { renderAll(); _dbg('renderAll OK', '#0ff'); } catch(e) { _dbg('renderAll ERR: ' + e.message, '#f00'); console.error('renderAll:', e); }
       }
       hideLoader();
 
-      // Sincronizar con Firestore en segundo plano
+      _dbg('sync Firestore bg...');
       loadFromFirestore(user.uid).then(() => {
+        _dbg('Firestore sync OK', '#0f0');
         try { renderAll(); } catch(e) {}
-      }).catch(e => console.warn('bg sync error:', e));
+      }).catch(e => { _dbg('Firestore ERR: ' + e.message, '#f88'); });
 
     } else {
       _currentUser = null;
       window._appInited = false;
+      _dbg('user null - pendingRedirect: ' + _pendingRedirect, '#ff0');
       if(_pendingRedirect) return;
       hideLoader();
       document.getElementById('loginScreen').style.display = 'flex';
