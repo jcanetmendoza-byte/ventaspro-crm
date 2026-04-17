@@ -146,7 +146,12 @@ window.addEventListener('load', () => {
 
   // Siempre ocultar loader después de 4s como máximo
   const hideLoader = () => {
-    document.getElementById('loader').classList.add('hide');
+    const loader = document.getElementById('loader');
+    loader.classList.add('hide');
+    // En móvil removemos el loader del DOM para que no bloquee toques
+    setTimeout(() => {
+      if(loader.parentNode) loader.parentNode.removeChild(loader);
+    }, 700);
     document.getElementById('app').style.opacity = '1';
   };
   const loaderTimeout = setTimeout(hideLoader, 4000);
@@ -260,7 +265,12 @@ window.addEventListener('load', () => {
       if(avatarEl) avatarEl.textContent = (user.displayName || user.email).charAt(0).toUpperCase();
 
       // Arrancar la app YA con datos de localStorage, sin bloquear en Firestore
-      document.getElementById('loginScreen').style.display = 'none';
+      const loginScreen = document.getElementById('loginScreen');
+      if(loginScreen) loginScreen.style.display = 'none';
+      // Remover loginScreen del DOM para que no bloquee toques en móvil
+      setTimeout(() => {
+        if(loginScreen && loginScreen.parentNode) loginScreen.parentNode.removeChild(loginScreen);
+      }, 500);
       if(!window._appInited) {
         window._appInited = true;
         try { initAll(); } catch(e) { console.error('initAll:', e); }
