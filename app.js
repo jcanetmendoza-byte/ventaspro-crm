@@ -9,32 +9,8 @@ let S = {
   selDate: new Date(), calDate: new Date(),
 };
 
-// ── DEBUG PANEL (móvil) ──
-const _dbg = (() => {
-  const el = document.createElement('div');
-  el.id = '_dbg';
-  el.style.cssText = `
-    position:fixed;bottom:0;left:0;right:0;max-height:40vh;overflow-y:auto;
-    background:rgba(0,0,0,0.92);color:#0f0;font:11px monospace;
-    padding:8px;z-index:99999;display:none;border-top:2px solid #0f0;
-  `;
-  const closeBtn = document.createElement('button');
-  closeBtn.textContent = '✕ cerrar';
-  closeBtn.style.cssText = 'position:sticky;top:0;float:right;background:#333;color:#fff;border:none;padding:2px 8px;cursor:pointer;font-size:11px;';
-  closeBtn.onclick = () => el.style.display = 'none';
-  el.appendChild(closeBtn);
-  document.body.appendChild(el);
-
-  return (msg, color) => {
-    el.style.display = 'block';
-    const line = document.createElement('div');
-    line.style.color = color || '#0f0';
-    line.textContent = new Date().toISOString().substr(11,8) + ' ' + msg;
-    el.appendChild(line);
-    el.scrollTop = el.scrollHeight;
-    console.log('[DBG]', msg);
-  };
-})();
+// ── DEBUG (disabled) ──
+const _dbg = () => {};
 
 // ── BUSINESS TYPE COLORS & ICONS ──
 const BIZ_STYLES = {
