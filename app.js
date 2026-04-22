@@ -1083,7 +1083,12 @@ function initCalendar() {
   // Popup close
   document.getElementById('gcalPopupClose').addEventListener('click', gcalClosePopup);
   document.getElementById('gcalPopupOverlay').addEventListener('click', gcalClosePopup);
-  document.addEventListener('keydown', e=>{ if(e.key==='Escape') gcalClosePopup(); });
+  document.addEventListener('keydown', e=>{
+    if(e.key==='Escape') {
+      gcalClosePopup();
+      if(document.body.classList.contains('read-mode')) toggleReadMode();
+    }
+  });
 }
 
 function openCalModal() {
@@ -1699,6 +1704,77 @@ function renderScripts() {
     : '<div class="script-empty" style="height:120px"><i class="fa-solid fa-scroll"></i><p>Sin guiones</p></div>';
 }
 
+// ── Format script content: highlight variables, questions, instructions ──
+function formatScriptContent(raw) {
+  // Split into paragraphs/lines
+  return raw.split('\n').map(line => {
+    if (!line.trim()) return '<div class="sv-line-spacer"></div>';
+
+    // Highlight {VARIABLES}
+    line = line.replace(/\{([^}]+)\}/g, '<span class="sv-var">$1</span>');
+
+    // Lines starting with # are section headers
+    if (/^#+\s/.test(line.trim())) {
+      const text = line.replace(/^#+\s*/, '');
+      return `<div class="sv-section-header">${text}</div>`;
+    }
+    // Lines in [brackets] or starting with * are instructions/stage directions
+    if (/^\[.*\]$/.test(line.trim()) || /^\*/.test(line.trim())) {
+      const text = line.replace(/^\*+\s*/, '').replace(/^\[|\]$/g, '');
+      return `<div class="sv-instruction"><i class="fa-solid fa-circle-info"></i>${text}</div>`;
+    }
+    // Lines ending with ? are questions
+    if (line.trim().endsWith('?')) {
+      return `<div class="sv-question">${line}</div>`;
+    }
+    // Default: regular speech line
+    return `<div class="sv-line">${line}</div>`;
+  }).join('');
+}
+
+// ── Objection quick-access buttons ──
+const OBJECTIONS = [
+  { label: 'Precio alto',      icon: 'fa-tag' },
+  { label: 'Ya tengo web',     icon: 'fa-globe' },
+  { label: 'No tengo tiempo',  icon: 'fa-clock' },
+  { label: 'No me interesa',   icon: 'fa-hand' },
+  { label: 'Llámame después',  icon: 'fa-phone-slash' },
+];
+
+function scrollToObjSection(keyword, viewerId) {
+  const viewer = document.getElementById(viewerId);
+  if (!viewer) return;
+  const headers = viewer.querySelectorAll('.sv-section-header');
+  for (const h of headers) {
+    if (h.textContent.toLowerCase().includes(keyword.toLowerCase())) {
+      h.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      h.classList.add('sv-section-flash');
+      setTimeout(() => h.classList.remove('sv-section-flash'), 1200);
+      return;
+    }
+  }
+  // fallback: search in any line
+  const lines = viewer.querySelectorAll('.sv-line, .sv-question');
+  for (const l of lines) {
+    if (l.textContent.toLowerCase().includes(keyword.toLowerCase())) {
+      l.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+  }
+  showToast('Sección no encontrada en este guion', 'error');
+}
+
+function toggleReadMode() {
+  document.body.classList.toggle('read-mode');
+  const btn = document.getElementById('readModeBtn');
+  if (!btn) return;
+  const active = document.body.classList.contains('read-mode');
+  btn.innerHTML = active
+    ? '<i class="fa-solid fa-compress"></i> Salir'
+    : '<i class="fa-solid fa-expand"></i> Pantalla completa';
+  btn.classList.toggle('active', active);
+}
+
 function viewScript(id) {
   S.activeScript = id;
   const s = S.scripts.find(x=>x.id===id);
@@ -1708,23 +1784,43 @@ function viewScript(id) {
   const viewer = document.getElementById('scriptViewer');
   const isMobile = window.innerWidth < 768;
   if(isMobile) document.querySelector('.scripts-layout').classList.add('script-open');
-  viewer.innerHTML = `<div class="glass-card script-view" style="background:linear-gradient(160deg,${c}0d 0%,rgba(8,12,18,0.85) 50%);border-color:${c}22;">
+
+  const objBtns = OBJECTIONS.map(o =>
+    `<button class="sv-obj-btn" onclick="scrollToObjSection('${o.label}','sv-body-${s.id}')">
+      <i class="fa-solid ${o.icon}"></i>${o.label}
+    </button>`
+  ).join('');
+
+  viewer.innerHTML = `
+  <div class="glass-card script-view" style="border-color:${c}30;background:linear-gradient(160deg,${c}0d 0%,rgba(8,12,18,0.9) 55%);">
+
+    <!-- HEADER -->
     <div class="sv-header">
-      <div style="display:flex;align-items:center;gap:10px">
-        ${isMobile ? `<button onclick="closeScriptViewer()" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:var(--text2);width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:0.85rem;flex-shrink:0"><i class="fa-solid fa-arrow-left"></i></button>` : ''}
+      <div class="sv-header-left">
+        ${isMobile ? `<button onclick="closeScriptViewer()" class="sv-back-btn"><i class="fa-solid fa-arrow-left"></i></button>` : ''}
         <div>
           <div class="sv-title">${s.title}</div>
-          <div class="sv-cat" style="color:${c}99">${s.category}</div>
+          <div class="sv-cat" style="color:${c}">${s.category}</div>
         </div>
       </div>
       <div class="sv-actions">
-        <button class="btn-ghost" style="padding:7px 12px;font-size:0.78rem" onclick="toggleFav('${s.id}')"><i class="fa-${s.fav?'solid':'regular'} fa-star" style="color:var(--yellow)"></i></button>
-        <button class="btn-ghost" style="padding:7px 12px;font-size:0.78rem" onclick="copyScript('${s.id}')"><i class="fa-solid fa-copy"></i> Copiar</button>
-        <button class="btn-primary" style="padding:7px 14px;font-size:0.78rem" onclick="editScriptInline('${s.id}')"><i class="fa-solid fa-pen"></i> Editar</button>
-        <button class="btn-ghost" style="padding:7px 12px;font-size:0.78rem;color:var(--red)" onclick="deleteScript('${s.id}')"><i class="fa-solid fa-trash"></i></button>
+        <button class="btn-ghost sv-icon-btn" onclick="copyScript('${s.id}')" title="Copiar guion"><i class="fa-solid fa-copy"></i></button>
+        <button class="btn-ghost sv-icon-btn" onclick="toggleFav('${s.id}')" title="Favorito"><i class="fa-${s.fav?'solid':'regular'} fa-star" style="color:var(--yellow)"></i></button>
+        <button id="readModeBtn" class="sv-readmode-btn" onclick="toggleReadMode()"><i class="fa-solid fa-expand"></i> Pantalla completa</button>
+        <button class="btn-primary sv-icon-btn" onclick="editScriptInline('${s.id}')" title="Editar"><i class="fa-solid fa-pen"></i></button>
+        <button class="btn-ghost sv-icon-btn" style="color:var(--red)" onclick="deleteScript('${s.id}')" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
       </div>
     </div>
-    <div class="sv-content">${s.content}</div>
+
+    <!-- OBJECTION QUICK BAR -->
+    <div class="sv-obj-bar">
+      <span class="sv-obj-label"><i class="fa-solid fa-bolt"></i> Objeciones</span>
+      ${objBtns}
+    </div>
+
+    <!-- CONTENT -->
+    <div class="sv-content" id="sv-body-${s.id}">${formatScriptContent(s.content)}</div>
+
   </div>`;
   renderScripts();
 }
