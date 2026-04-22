@@ -1824,6 +1824,62 @@ function closeScriptViewer() {
   S.activeScript = null;
 }
 
+// ── AUTO-FORMAT: converts plain text script into marked-up format ──
+function autoFormatScript() {
+  const ta = document.getElementById('editSContent');
+  if (!ta) return;
+
+  // Keywords that indicate section headers
+  const sectionKeywords = [
+    'apertura','introducción','introduccion','presentación','presentacion',
+    'cierre','objeción','objeciones','objecion','seguimiento','propuesta',
+    'beneficios','precio','despedida','llamada','contacto','saludo',
+    'opening','closing','intro','remate'
+  ];
+
+  // Keywords that indicate instructions/stage directions
+  const instructionKeywords = [
+    'esperar','pausa','pausa','escuchar','anotar','verificar','confirmar',
+    'tono','hablar','respirar','silencio','nota:','importante:','tip:'
+  ];
+
+  // Placeholder patterns: words in CAPS of 3+ chars, or common placeholders
+  const varPattern = /\b([A-ZÁÉÍÓÚÑ]{3,}(?:\s[A-ZÁÉÍÓÚÑ]{2,})*)\b/g;
+
+  const lines = ta.value.split('\n');
+  const result = lines.map(line => {
+    const trimmed = line.trim();
+    if (!trimmed) return '';
+
+    // Already marked — leave as-is
+    if (/^[#\[\*]/.test(trimmed)) return line;
+
+    const lower = trimmed.toLowerCase();
+
+    // Detect section header: short line (≤5 words) matching section keywords
+    const wordCount = trimmed.split(/\s+/).length;
+    const isSection = wordCount <= 5 && sectionKeywords.some(k => lower.includes(k));
+    if (isSection) return '# ' + trimmed;
+
+    // Detect instruction: contains instruction keywords or is in parentheses
+    const isInstruction = instructionKeywords.some(k => lower.includes(k))
+      || /^\(.*\)$/.test(trimmed);
+    if (isInstruction) return '[' + trimmed.replace(/^\(|\)$/g, '') + ']';
+
+    // Wrap ALL-CAPS words as variables {VARIABLE}
+    const withVars = trimmed.replace(varPattern, (match) => {
+      // Skip if already wrapped
+      if (line.includes('{' + match + '}')) return match;
+      return '{' + match + '}';
+    });
+
+    return withVars;
+  });
+
+  ta.value = result.join('\n');
+  showToast('Guion formateado automáticamente', 'success');
+}
+
 function editScriptInline(id) {
   const s = S.scripts.find(x=>x.id===id);
   if(!s) return;
@@ -1831,11 +1887,14 @@ function editScriptInline(id) {
     <div class="sv-header">
       <input id="editSTitle" value="${s.title}" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:9px;font-size:0.95rem;font-weight:700;outline:none;flex:1;font-family:inherit">
       <div class="sv-actions">
+        <button class="sv-format-btn" onclick="autoFormatScript()" title="Detecta preguntas, instrucciones y variables automáticamente">
+          <i class="fa-solid fa-wand-magic-sparkles"></i> Auto-formatear
+        </button>
         <button class="btn-primary" style="padding:7px 14px;font-size:0.78rem" onclick="saveScriptInline('${s.id}')"><i class="fa-solid fa-check"></i> Guardar</button>
         <button class="btn-ghost" style="padding:7px 12px;font-size:0.78rem" onclick="viewScript('${s.id}')">Cancelar</button>
       </div>
     </div>
-    <textarea class="sv-content-edit" id="editSContent">${s.content}</textarea>
+    <textarea class="sv-content-edit" id="editSContent" placeholder="Pega tu guion aquí y toca Auto-formatear...">${s.content}</textarea>
   </div>`;
 }
 

@@ -2230,6 +2230,21 @@ select.paste-field-input option { background: var(--surface2); }
 .sv-obj-btn i { font-size: 0.62rem; }
 .sv-obj-empty { font-size: 0.68rem; color: rgba(255,77,106,0.45); font-style: italic; }
 
+/* Auto-format button */
+.sv-format-btn {
+  display: flex; align-items: center; gap: 6px;
+  background: linear-gradient(135deg, rgba(168,85,247,0.18), rgba(124,58,237,0.12));
+  border: 1px solid rgba(168,85,247,0.35);
+  color: var(--purple2); padding: 7px 14px; border-radius: 9px;
+  font-size: 0.76rem; font-weight: 700; cursor: pointer; font-family: inherit;
+  transition: all 0.18s ease; white-space: nowrap;
+}
+.sv-format-btn:hover {
+  background: linear-gradient(135deg, rgba(168,85,247,0.28), rgba(124,58,237,0.2));
+  box-shadow: 0 0 16px rgba(168,85,247,0.3); transform: translateY(-1px);
+}
+.sv-format-btn i { font-size: 0.78rem; }
+
 /* Content area */
 .sv-content {
   flex: 1; overflow-y: auto;
