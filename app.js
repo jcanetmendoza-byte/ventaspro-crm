@@ -1742,30 +1742,15 @@ const OBJECTIONS = [
 ];
 
 function scrollToObjSection(keyword, viewerId) {
-  const viewer = document.getElementById(viewerId);
-  if (!viewer) return;
-
-  // Target: section headers first, then any line containing the keyword
-  const candidates = [
-    ...viewer.querySelectorAll('.sv-section-header'),
-    ...viewer.querySelectorAll('.sv-line, .sv-question')
-  ];
-
-  for (const el of candidates) {
-    if (el.textContent.toLowerCase().includes(keyword.toLowerCase())) {
-      // Scroll the .sv-content container (not the viewport)
-      const container = viewer; // sv-content is the scrollable div
-      const elTop = el.offsetTop - container.offsetTop - 16;
-      container.scrollTo({ top: elTop, behavior: 'smooth' });
-      // Flash highlight
-      el.classList.add('sv-section-flash');
-      setTimeout(() => el.classList.remove('sv-section-flash'), 1400);
-      return;
-    }
+  // Find a script whose title matches the keyword and open it
+  const match = S.scripts.find(s =>
+    s.title.toLowerCase().includes(keyword.toLowerCase())
+  );
+  if (match) {
+    viewScript(match.id);
+    return;
   }
-
-  // Nothing found — show a helper toast with a tip
-  showToast('Agrega una sección "' + keyword + '" en el guion con # al inicio', 'error');
+  showToast('No hay un guion llamado "' + keyword + '"', 'error');
 }
 
 function toggleReadMode() {
