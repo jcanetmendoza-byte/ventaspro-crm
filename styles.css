@@ -2228,6 +2228,7 @@ select.paste-field-input option { background: var(--surface2); }
 }
 .sv-obj-btn:hover { background: rgba(255,77,106,0.2); border-color: rgba(255,77,106,0.4); transform: translateY(-1px); }
 .sv-obj-btn i { font-size: 0.62rem; }
+.sv-obj-empty { font-size: 0.68rem; color: rgba(255,77,106,0.45); font-style: italic; }
 
 /* Content area */
 .sv-content {

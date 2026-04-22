@@ -1774,11 +1774,15 @@ function viewScript(id) {
   const isMobile = window.innerWidth < 768;
   if(isMobile) document.querySelector('.scripts-layout').classList.add('script-open');
 
-  const objBtns = OBJECTIONS.map(o =>
-    `<button class="sv-obj-btn" onclick="scrollToObjSection('${o.label}','sv-body-${s.id}')">
-      <i class="fa-solid ${o.icon}"></i>${o.label}
-    </button>`
-  ).join('');
+  // Build objection buttons from scripts with category "Objeciones"
+  const objScripts = S.scripts.filter(x => x.category === 'Objeciones' && x.id !== s.id);
+  const objBtns = objScripts.length
+    ? objScripts.map(o =>
+        `<button class="sv-obj-btn" onclick="viewScript('${o.id}')">
+          <i class="fa-solid fa-shield-halved"></i>${o.title}
+        </button>`
+      ).join('')
+    : `<span class="sv-obj-empty">Crea guiones con categoría "Objeciones" para verlos aquí</span>`;
 
   viewer.innerHTML = `
   <div class="glass-card script-view" style="border-color:${c}30;background:linear-gradient(160deg,${c}0d 0%,rgba(8,12,18,0.9) 55%);">
