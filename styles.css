@@ -2250,7 +2250,12 @@ select.paste-field-input option { background: var(--surface2); }
   background: linear-gradient(180deg, var(--blue2), var(--purple2));
   border-radius: 2px; flex-shrink: 0;
 }
-.sv-section-flash { color: var(--blue2) !important; }
+.sv-section-flash {
+  color: var(--blue2) !important;
+  background: rgba(79,142,255,0.12) !important;
+  border-radius: 6px;
+  transition: background 0.3s ease, color 0.3s ease;
+}
 
 .sv-question {
   font-size: 1rem; font-weight: 700; color: #EEF2FF;

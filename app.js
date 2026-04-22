@@ -1744,24 +1744,28 @@ const OBJECTIONS = [
 function scrollToObjSection(keyword, viewerId) {
   const viewer = document.getElementById(viewerId);
   if (!viewer) return;
-  const headers = viewer.querySelectorAll('.sv-section-header');
-  for (const h of headers) {
-    if (h.textContent.toLowerCase().includes(keyword.toLowerCase())) {
-      h.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      h.classList.add('sv-section-flash');
-      setTimeout(() => h.classList.remove('sv-section-flash'), 1200);
+
+  // Target: section headers first, then any line containing the keyword
+  const candidates = [
+    ...viewer.querySelectorAll('.sv-section-header'),
+    ...viewer.querySelectorAll('.sv-line, .sv-question')
+  ];
+
+  for (const el of candidates) {
+    if (el.textContent.toLowerCase().includes(keyword.toLowerCase())) {
+      // Scroll the .sv-content container (not the viewport)
+      const container = viewer; // sv-content is the scrollable div
+      const elTop = el.offsetTop - container.offsetTop - 16;
+      container.scrollTo({ top: elTop, behavior: 'smooth' });
+      // Flash highlight
+      el.classList.add('sv-section-flash');
+      setTimeout(() => el.classList.remove('sv-section-flash'), 1400);
       return;
     }
   }
-  // fallback: search in any line
-  const lines = viewer.querySelectorAll('.sv-line, .sv-question');
-  for (const l of lines) {
-    if (l.textContent.toLowerCase().includes(keyword.toLowerCase())) {
-      l.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      return;
-    }
-  }
-  showToast('Sección no encontrada en este guion', 'error');
+
+  // Nothing found — show a helper toast with a tip
+  showToast('Agrega una sección "' + keyword + '" en el guion con # al inicio', 'error');
 }
 
 function toggleReadMode() {
