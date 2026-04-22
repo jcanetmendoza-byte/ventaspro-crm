@@ -322,7 +322,7 @@ function renderAll() {
   try { renderDashboard(); } catch(e) { console.error('renderDashboard:', e); }
   try { renderContacts(); } catch(e) { console.error('renderContacts:', e); }
   try { renderCalendar(); } catch(e) { console.error('renderCalendar:', e); }
-  try { renderMetrics(); } catch(e) { console.error('renderMetrics:', e); }
+  try { if(document.getElementById('page-metricas').classList.contains('active')) renderMetrics(); } catch(e) { console.error('renderMetrics:', e); }
   try { renderScripts(); } catch(e) { console.error('renderScripts:', e); }
   try { renderSettings(); } catch(e) { console.error('renderSettings:', e); }
   try { renderRetos(); } catch(e) { console.error('renderRetos:', e); }
@@ -354,7 +354,7 @@ function initNav() {
     if(sec==='dashboard') renderDashboard();
     if(sec==='contactos') renderContacts();
     if(sec==='calendario') renderCalendar();
-    if(sec==='metricas') renderMetrics();
+    if(sec==='metricas') requestAnimationFrame(() => renderMetrics());
     if(sec==='guiones') renderScripts();
     if(sec==='retos') renderRetos();
     if(sec==='historial') renderHistorial();
@@ -1539,8 +1539,10 @@ function renderMetrics() {
     incomeData.push(incomeByMonth[key]||0);
   }
 
+  const incomeCanvas = document.getElementById('incomeChart');
+  if(!incomeCanvas) return;
   if(chartIncome) chartIncome.destroy();
-  chartIncome = new Chart(document.getElementById('incomeChart'), {
+  chartIncome = new Chart(incomeCanvas, {
     type: 'line',
     data: {
       labels: incomeLabels,
@@ -1586,8 +1588,10 @@ function renderMetrics() {
     goalData.push(dayData.goal || goal);
   }
 
+  const actCanvas = document.getElementById('activityChart');
+  if(!actCanvas) return;
   if(chartActivity) chartActivity.destroy();
-  chartActivity = new Chart(document.getElementById('activityChart'), {
+  chartActivity = new Chart(actCanvas, {
     type: 'line',
     data: {
       labels: actLabels,
