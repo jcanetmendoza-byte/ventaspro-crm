@@ -1893,9 +1893,6 @@ select.paste-field-input option { background: var(--surface2); }
   to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-.m-kpi-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
-
-.m-kpi-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
 
 /* ── KPI STRIP ── */
 .m-kpi-strip {

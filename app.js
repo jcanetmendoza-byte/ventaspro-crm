@@ -1492,8 +1492,10 @@ function renderMetrics() {
   ];
   const statColors = ['#4F8EFF','#FFD166','#A855F7','#22D98A','#FF4D6A'];
 
-  if(chartConv) chartConv.destroy();
-  chartConv = new Chart(document.getElementById('convChart'), {
+  if(chartConv) { chartConv.destroy(); chartConv = null; }
+  const convCanvas = document.getElementById('convChart');
+  if(convCanvas) {
+    chartConv = new Chart(convCanvas, {
     type: 'doughnut',
     data: { labels: statLabels, datasets: [{ data: statCounts, backgroundColor: statColors.map(c=>c+'CC'), borderWidth: 0, hoverOffset: 10, borderRadius: 4 }] },
     options: {
@@ -1505,7 +1507,9 @@ function renderMetrics() {
       animation: { animateRotate: true, duration: 1000, easing: 'easeOutQuart' }
     }
   });
-  document.getElementById('donutLegend').innerHTML = statLabels.map((l,i) =>
+  }
+  const donutLegendEl = document.getElementById('donutLegend');
+  if(donutLegendEl) donutLegendEl.innerHTML = statLabels.map((l,i) =>
     `<div class="m-donut-leg-item">
       <div class="m-donut-leg-dot" style="background:${statColors[i]}"></div>
       <div class="m-donut-leg-name">${l}</div>
