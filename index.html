@@ -363,132 +363,118 @@
   <!-- METRICAS -->
   <section class="page" id="page-metricas">
 
-    <!-- KPIs ROW -->
-    <div class="m-kpi-row">
-      <!-- INGRESO DESTACADO -->
-      <div class="m-kpi-hero">
-        <div class="m-kpi-hero-bg"></div>
-        <div class="m-kpi-hero-top">
-          <div class="m-kpi-icon-lg"><i class="fa-solid fa-dollar-sign"></i></div>
-          <div class="m-kpi-trend-lg up" id="mRevTrend"><i class="fa-solid fa-arrow-trend-up"></i> +18%</div>
+    <!-- KPI STRIP — 4 tarjetas en fila -->
+    <div class="m-kpi-strip">
+      <div class="m-kpi-card">
+        <div class="m-kpi-card-icon" style="background:rgba(30,217,138,0.12);color:#1ED98A"><i class="fa-solid fa-dollar-sign"></i></div>
+        <div class="m-kpi-card-body">
+          <div class="m-kpi-card-val" id="mRevenue">$0</div>
+          <div class="m-kpi-card-label">Ingresos totales</div>
         </div>
-        <div class="m-kpi-hero-val" id="mRevenue">$0</div>
-        <div class="m-kpi-hero-label">Ingresos totales</div>
-        <div class="m-kpi-hero-sub" id="mRevSub">vs. semana anterior</div>
       </div>
-      <!-- MINI KPIs -->
-      <div class="m-kpi-mini-col">
-        <div class="m-kpi-mini" data-color="blue">
-          <div class="m-kpi-mini-top">
-            <div class="m-kpi-mini-icon blue"><i class="fa-solid fa-phone"></i></div>
-            <div class="m-kpi-mini-trend up" id="mCallsTrend">↑ +12%</div>
-          </div>
-          <div class="m-kpi-mini-val" id="mCalls">0</div>
-          <div class="m-kpi-mini-label">Llamadas totales</div>
+      <div class="m-kpi-card">
+        <div class="m-kpi-card-icon" style="background:rgba(79,142,255,0.12);color:#4F8EFF"><i class="fa-solid fa-phone"></i></div>
+        <div class="m-kpi-card-body">
+          <div class="m-kpi-card-val" id="mCalls">0</div>
+          <div class="m-kpi-card-label">Llamadas totales</div>
         </div>
-        <div class="m-kpi-mini" data-color="purple">
-          <div class="m-kpi-mini-top">
-            <div class="m-kpi-mini-icon purple"><i class="fa-solid fa-handshake"></i></div>
-            <div class="m-kpi-mini-trend up" id="mClosedTrend">↑ +1</div>
-          </div>
-          <div class="m-kpi-mini-val" id="mClosed">0</div>
-          <div class="m-kpi-mini-label">Ventas cerradas</div>
+      </div>
+      <div class="m-kpi-card">
+        <div class="m-kpi-card-icon" style="background:rgba(168,85,247,0.12);color:#A855F7"><i class="fa-solid fa-handshake"></i></div>
+        <div class="m-kpi-card-body">
+          <div class="m-kpi-card-val" id="mClosed">0</div>
+          <div class="m-kpi-card-label">Ventas cerradas</div>
         </div>
-        <div class="m-kpi-mini" data-color="green">
-          <div class="m-kpi-mini-top">
-            <div class="m-kpi-mini-icon green"><i class="fa-solid fa-percent"></i></div>
-            <div class="m-kpi-mini-trend" id="mConvTrend">—</div>
-          </div>
-          <div class="m-kpi-mini-val" id="mConv">0%</div>
-          <div class="m-kpi-mini-label">Tasa de conversión</div>
+      </div>
+      <div class="m-kpi-card">
+        <div class="m-kpi-card-icon" style="background:rgba(255,209,102,0.12);color:#FFD166"><i class="fa-solid fa-percent"></i></div>
+        <div class="m-kpi-card-body">
+          <div class="m-kpi-card-val" id="mConv">0%</div>
+          <div class="m-kpi-card-label">Conversión</div>
         </div>
       </div>
     </div>
 
-    <!-- FUNNEL + DONUT -->
-    <div class="m-mid-row">
+    <!-- FILA MEDIA: Funnel + Gráfica ingresos -->
+    <div class="m-main-row">
+
+      <!-- FUNNEL -->
       <div class="glass-card m-funnel-card">
         <div class="card-head">
-          <div>
-            <div class="card-title">Funnel de ventas</div>
-            <div class="card-sub">De contacto a cierre</div>
-          </div>
+          <div class="card-title">Pipeline</div>
+          <div class="card-sub">Estado de contactos</div>
         </div>
         <div id="funnelView" class="m-funnel"></div>
       </div>
-      <div class="glass-card m-donut-card">
+
+      <!-- INGRESOS -->
+      <div class="glass-card m-income-card">
         <div class="card-head">
-          <div class="card-title">Distribución</div>
-        </div>
-        <div class="m-donut-wrap">
-          <canvas id="convChart"></canvas>
-          <div class="m-donut-center" id="donutCenter">
-            <div class="m-donut-pct" id="donutPct">0%</div>
-            <div class="m-donut-lbl">Conversión</div>
+          <div>
+            <div class="card-title">Ingresos</div>
+            <div class="card-sub">Últimos 6 meses</div>
           </div>
+          <div class="m-income-total" id="mIncomeTotal">$0</div>
         </div>
-        <div id="donutLegend" class="m-donut-legend"></div>
+        <canvas id="incomeChart" height="110"></canvas>
       </div>
+
     </div>
 
-    <!-- INGRESOS FULL WIDTH -->
-    <div class="glass-card m-income-card">
-      <div class="card-head">
-        <div>
-          <div class="card-title">Ingresos en el tiempo</div>
-          <div class="card-sub">Acumulado por mes (contactos cerrados)</div>
-        </div>
-        <div class="m-income-total" id="mIncomeTotal">$0 este mes</div>
-      </div>
-      <canvas id="incomeChart" height="70"></canvas>
-    </div>
-
-    <!-- ACTIVIDAD DE LLAMADAS — gráfica de picos -->
+    <!-- ACTIVIDAD DE LLAMADAS -->
     <div class="glass-card m-activity-card">
       <div class="card-head">
         <div>
-          <div class="card-title"><i class="fa-solid fa-wave-square" style="color:var(--blue2);margin-right:8px"></i>Actividad de llamadas</div>
-          <div class="card-sub">Llamadas por día — últimos 30 días</div>
+          <div class="card-title">Actividad de llamadas</div>
+          <div class="card-sub">Últimos 30 días</div>
         </div>
         <div class="m-activity-legend">
           <span><span class="m-act-dot" style="background:#4F8EFF"></span>Llamadas</span>
           <span><span class="m-act-dot" style="background:#22D98A"></span>Meta</span>
         </div>
       </div>
-      <canvas id="activityChart" height="80"></canvas>
+      <canvas id="activityChart" height="75"></canvas>
     </div>
 
-    <!-- INSIGHTS ROW -->
+    <!-- INSIGHTS — fila de 4 datos clave -->
     <div class="m-insights-row">
       <div class="glass-card m-insight">
-        <div class="m-insight-icon" style="background:rgba(255,209,102,0.12);color:var(--yellow)"><i class="fa-solid fa-star"></i></div>
+        <div class="m-insight-icon" style="background:rgba(255,209,102,0.1);color:#FFD166"><i class="fa-solid fa-star"></i></div>
         <div class="m-insight-info">
-          <div class="m-insight-label">Mejor día de ventas</div>
+          <div class="m-insight-label">Mejor día</div>
           <div class="m-insight-val" id="insightBestDay">—</div>
         </div>
       </div>
       <div class="glass-card m-insight">
-        <div class="m-insight-icon" style="background:rgba(79,142,255,0.12);color:var(--blue2)"><i class="fa-solid fa-clock"></i></div>
+        <div class="m-insight-icon" style="background:rgba(79,142,255,0.1);color:#4F8EFF"><i class="fa-solid fa-clock"></i></div>
         <div class="m-insight-info">
-          <div class="m-insight-label">Hora con más conversiones</div>
+          <div class="m-insight-label">Mejor hora</div>
           <div class="m-insight-val" id="insightBestHour">10:00 – 12:00</div>
         </div>
       </div>
       <div class="glass-card m-insight">
-        <div class="m-insight-icon" style="background:rgba(34,217,138,0.1);color:var(--green)"><i class="fa-solid fa-trophy"></i></div>
+        <div class="m-insight-icon" style="background:rgba(30,217,138,0.1);color:#1ED98A"><i class="fa-solid fa-trophy"></i></div>
         <div class="m-insight-info">
-          <div class="m-insight-label">Cliente más valioso</div>
+          <div class="m-insight-label">Cliente top</div>
           <div class="m-insight-val" id="insightTopClient">—</div>
         </div>
       </div>
       <div class="glass-card m-insight">
-        <div class="m-insight-icon" style="background:rgba(168,85,247,0.1);color:var(--purple)"><i class="fa-solid fa-chart-line"></i></div>
+        <div class="m-insight-icon" style="background:rgba(168,85,247,0.1);color:#A855F7"><i class="fa-solid fa-chart-line"></i></div>
         <div class="m-insight-info">
           <div class="m-insight-label">Ticket promedio</div>
           <div class="m-insight-val" id="insightAvgTicket">$0</div>
         </div>
       </div>
     </div>
+
+    <!-- IDs ocultos que el JS necesita (compatibilidad) -->
+    <span id="donutPct" style="display:none">0%</span>
+    <span id="mRevTrend" style="display:none"></span>
+    <span id="mCallsTrend" style="display:none"></span>
+    <span id="mClosedTrend" style="display:none"></span>
+    <span id="mConvTrend" style="display:none"></span>
+    <span id="mRevSub" style="display:none"></span>
 
   </section>
 
