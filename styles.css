@@ -3427,121 +3427,141 @@ body.read-mode .sv-readmode-btn { position: fixed; bottom: 20px; right: 20px; z-
   .gcal-popup.open { transform: translateY(-50%); }
 
   /* Mobile calendar wrap */
-  .mob-cal-wrap { display: flex; flex-direction: column; gap: 12px; padding-bottom: 16px; }
+  .mob-cal-wrap { display: flex; flex-direction: column; gap: 10px; padding-bottom: 16px; }
 
-  /* Week strip */
+  /* ── Week strip ── */
   .mob-cal-strip {
-    display: flex; gap: 6px; overflow-x: auto;
-    padding: 4px 2px 8px; scrollbar-width: none;
+    display: flex; gap: 5px; overflow-x: auto;
+    padding: 2px 2px 6px; scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
   }
   .mob-cal-strip::-webkit-scrollbar { display: none; }
   .mob-cal-strip-day {
-    display: flex; flex-direction: column; align-items: center; gap: 4px;
-    min-width: 46px; padding: 10px 6px; border-radius: 14px;
-    background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);
+    display: flex; flex-direction: column; align-items: center; gap: 5px;
+    min-width: 48px; padding: 11px 6px; border-radius: 16px;
+    background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06);
     cursor: pointer; transition: all 0.18s ease; flex-shrink: 0;
   }
+  .mob-cal-strip-day:active { transform: scale(0.95); }
   .mob-cal-strip-day.is-today {
-    border-color: rgba(79,142,255,0.45);
     background: rgba(79,142,255,0.1);
-    box-shadow: 0 0 12px rgba(79,142,255,0.2);
+    border-color: rgba(79,142,255,0.4);
   }
   .mob-cal-strip-day.is-sel {
-    background: linear-gradient(135deg, rgba(124,58,237,0.3), rgba(168,85,247,0.18));
-    border-color: rgba(168,85,247,0.55);
-    box-shadow: 0 4px 16px rgba(124,58,237,0.3);
+    background: #4F8EFF;
+    border-color: #4F8EFF;
+    box-shadow: 0 4px 18px rgba(79,142,255,0.45);
   }
-  .mob-cal-strip-name { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text2); }
-  .mob-cal-strip-day.is-sel .mob-cal-strip-name { color: var(--purple2); }
-  .mob-cal-strip-num { font-size: 1rem; font-weight: 800; color: var(--text3); line-height: 1; }
-  .mob-cal-strip-day.is-today .mob-cal-strip-num { color: var(--blue2); }
+  .mob-cal-strip-name {
+    font-size: 0.58rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.08em; color: rgba(176,191,218,0.45);
+  }
+  .mob-cal-strip-day.is-sel .mob-cal-strip-name { color: rgba(255,255,255,0.8); }
+  .mob-cal-strip-day.is-today .mob-cal-strip-name { color: #7AADFF; }
+  .mob-cal-strip-num {
+    font-size: 1.05rem; font-weight: 900; color: rgba(200,215,240,0.6); line-height: 1;
+  }
+  .mob-cal-strip-day.is-today .mob-cal-strip-num { color: #7AADFF; }
   .mob-cal-strip-day.is-sel .mob-cal-strip-num { color: #fff; }
   .mob-cal-strip-dot {
-    width: 5px; height: 5px; border-radius: 50%;
-    background: var(--purple); box-shadow: 0 0 6px var(--purple);
+    width: 5px; height: 5px; border-radius: 50%; background: #A855F7;
   }
-  .mob-cal-strip-dot.empty { background: transparent; box-shadow: none; }
+  .mob-cal-strip-day.is-sel .mob-cal-strip-dot { background: rgba(255,255,255,0.7); }
+  .mob-cal-strip-dot.empty { background: transparent; }
 
-  /* Day header */
+  /* ── Day header ── */
   .mob-cal-day-header {
     display: flex; align-items: center; gap: 10px;
-    padding: 11px 14px;
-    background: rgba(8,12,18,0.75); border: 1px solid rgba(255,255,255,0.09);
-    border-radius: 14px; backdrop-filter: blur(10px);
+    padding: 12px 16px;
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 16px;
   }
-  .mob-cal-day-label { flex: 1; font-size: 0.85rem; font-weight: 700; text-transform: capitalize; }
-  .mob-cal-day-count { font-size: 0.7rem; color: var(--text2); white-space: nowrap; }
+  .mob-cal-day-label { flex: 1; font-size: 0.88rem; font-weight: 800; text-transform: capitalize; color: #fff; }
+  .mob-cal-day-count { font-size: 0.7rem; color: rgba(176,191,218,0.45); white-space: nowrap; }
   .mob-cal-add-btn {
-    width: 30px; height: 30px; border-radius: 9px; flex-shrink: 0;
-    background: linear-gradient(135deg, #7C3AED, #A855F7);
-    border: none; color: #fff; font-size: 0.82rem; cursor: pointer;
+    width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0;
+    background: #4F8EFF; border: none; color: #fff; font-size: 0.82rem; cursor: pointer;
     display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 3px 12px rgba(124,58,237,0.4);
+    box-shadow: 0 3px 14px rgba(79,142,255,0.45);
   }
 
-  /* Agenda list */
-  .mob-cal-agenda { display: flex; flex-direction: column; gap: 7px; }
+  /* ── Agenda list ── */
+  .mob-cal-agenda { display: flex; flex-direction: column; gap: 6px; }
   .mob-cal-ev-row {
-    display: flex; align-items: center; gap: 11px;
-    padding: 12px 13px;
-    background: rgba(8,12,18,0.75); border: 1px solid rgba(255,255,255,0.07);
-    border-left-width: 3px; border-radius: 14px;
+    display: flex; align-items: center; gap: 12px;
+    padding: 13px 14px;
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 16px;
     cursor: pointer; transition: all 0.18s ease;
     -webkit-tap-highlight-color: transparent;
   }
-  .mob-cal-ev-row:active { transform: scale(0.98); filter: brightness(1.1); }
-  .mob-cal-ev-row.done { opacity: 0.5; }
+  .mob-cal-ev-row:active { transform: scale(0.98); background: rgba(255,255,255,0.07); }
+  .mob-cal-ev-row.done { opacity: 0.45; }
   .mob-cal-ev-icon {
-    width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
-    display: flex; align-items: center; justify-content: center; font-size: 0.85rem;
+    width: 38px; height: 38px; border-radius: 12px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; font-size: 0.9rem;
   }
   .mob-cal-ev-body { flex: 1; min-width: 0; }
-  .mob-cal-ev-title { font-size: 0.86rem; font-weight: 700; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .mob-cal-ev-title {
+    font-size: 0.9rem; font-weight: 700; margin-bottom: 3px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #E8EEFF;
+  }
   .mob-cal-ev-row.done .mob-cal-ev-title { text-decoration: line-through; }
   .mob-cal-ev-meta { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
   .mob-cal-ev-type { font-size: 0.67rem; font-weight: 700; }
-  .mob-cal-ev-time { font-size: 0.67rem; color: var(--text2); display: flex; align-items: center; gap: 4px; }
+  .mob-cal-ev-time { font-size: 0.67rem; color: rgba(176,191,218,0.5); display: flex; align-items: center; gap: 4px; }
   .mob-cal-ev-time i { font-size: 0.58rem; opacity: 0.5; }
-  .mob-cal-ev-note { font-size: 0.63rem; color: var(--text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px; }
+  .mob-cal-ev-note { font-size: 0.63rem; color: rgba(176,191,218,0.45); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px; }
   .mob-cal-ev-status { flex-shrink: 0; }
   .mob-cal-ev-done { color: var(--green); font-size: 0.85rem; }
 
-  /* Empty state */
+  /* ── Empty state ── */
   .mob-cal-empty {
     display: flex; flex-direction: column; align-items: center; gap: 12px;
-    padding: 36px 20px; color: var(--text2); text-align: center;
+    padding: 40px 20px; color: rgba(176,191,218,0.4); text-align: center;
+    background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 16px;
   }
   .mob-cal-empty i { font-size: 2rem; opacity: 0.15; }
   .mob-cal-empty span { font-size: 0.83rem; }
   .mob-cal-empty-btn {
     display: flex; align-items: center; gap: 7px;
-    background: linear-gradient(135deg, #7C3AED, #A855F7);
-    color: #fff; border: none; padding: 10px 20px; border-radius: 11px;
-    font-size: 0.82rem; font-weight: 600; cursor: pointer; font-family: inherit;
-    box-shadow: 0 4px 16px rgba(124,58,237,0.35);
+    background: #4F8EFF; color: #fff; border: none;
+    padding: 10px 22px; border-radius: 20px;
+    font-size: 0.82rem; font-weight: 700; cursor: pointer; font-family: inherit;
+    box-shadow: 0 4px 18px rgba(79,142,255,0.4);
   }
 
-  /* Month mini navigator */
+  /* ── Month mini navigator ── */
   .mob-cal-month-nav {
-    background: rgba(8,12,18,0.6); border: 1px solid rgba(255,255,255,0.07);
-    border-radius: 14px; padding: 12px;
+    background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 16px; padding: 12px 14px;
   }
-  .mob-cal-month-title { font-size: 0.7rem; font-weight: 700; color: var(--text2); text-transform: capitalize; margin-bottom: 9px; text-align: center; }
+  .mob-cal-month-title {
+    font-size: 0.68rem; font-weight: 700; color: rgba(176,191,218,0.4);
+    text-transform: capitalize; margin-bottom: 10px; text-align: center;
+  }
   .mob-cal-month-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
   .mob-cal-month-dot {
-    aspect-ratio: 1; border-radius: 6px; cursor: pointer;
+    aspect-ratio: 1; border-radius: 8px; cursor: pointer;
     display: flex; align-items: center; justify-content: center;
-    background: rgba(255,255,255,0.02); transition: background 0.15s ease;
-    position: relative;
+    background: transparent; transition: background 0.15s ease; position: relative;
   }
-  .mob-cal-month-dot.today { background: rgba(79,142,255,0.18); box-shadow: 0 0 0 1px rgba(79,142,255,0.35); }
-  .mob-cal-month-dot.sel { background: rgba(168,85,247,0.25); box-shadow: 0 0 0 1px rgba(168,85,247,0.4); }
+  .mob-cal-month-dot:active { background: rgba(255,255,255,0.08); }
+  .mob-cal-month-dot.today {
+    background: rgba(79,142,255,0.2);
+    box-shadow: 0 0 0 1px rgba(79,142,255,0.4);
+  }
+  .mob-cal-month-dot.sel {
+    background: #4F8EFF;
+    box-shadow: 0 2px 10px rgba(79,142,255,0.4);
+  }
   .mob-cal-month-dot span {
     width: 4px; height: 4px; border-radius: 50%;
-    background: var(--purple); position: absolute; bottom: 3px;
+    background: #A855F7; position: absolute; bottom: 3px;
   }
-  .mob-cal-month-dot.today span { background: var(--blue); }
+  .mob-cal-month-dot.today span { background: #7AADFF; }
+  .mob-cal-month-dot.sel span { background: rgba(255,255,255,0.8); }
 
   /* ── TOAST ── */
   .toast { bottom: 76px; left: 14px; right: 14px; text-align: center; }
