@@ -312,7 +312,6 @@ function initAll() {
   initScripts(); initSettings(); initFilters();
   initNotifications(); initDetailPanel(); initCallPicker();
   initRetos(); initPasteModal(); initPostCallModal();
-  initMetricsPeriod();
   document.getElementById('titleDate').textContent = new Date().toLocaleDateString('es-MX',{weekday:'long',day:'numeric',month:'long'});
   // Botón de datos de prueba en dashboard
   document.getElementById('dashLoadSample').addEventListener('click', loadSampleData);
@@ -1429,70 +1428,6 @@ function saveEvent() {
 
 // ── METRICS ──
 let chartConv, chartIncome, chartActivity;
-let _metricPeriod = 'month'; // 'week' | 'month' | 'year'
-
-function initMetricsPeriod() {
-  document.querySelectorAll('.m-period-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.m-period-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      _metricPeriod = btn.dataset.period;
-      renderMetrics();
-    });
-  });
-}
-
-// Returns { start: Date, end: Date, labels: string[], keyFn: (Date)=>string }
-function getPeriodConfig(period) {
-  const now = new Date();
-  if (period === 'week') {
-    // Last 7 days
-    const days = [];
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date(now); d.setDate(now.getDate() - i);
-      days.push(d);
-    }
-    return {
-      start: days[0],
-      end: now,
-      labels: days.map(d => d.toLocaleDateString('es-MX', { weekday: 'short', day: 'numeric' })),
-      keys: days.map(d => fmtDate(d)),
-      keyFn: d => fmtDate(d),
-      unit: 'day'
-    };
-  }
-  if (period === 'month') {
-    // Last 6 months
-    const months = [];
-    for (let i = 5; i >= 0; i--) {
-      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      months.push(d);
-    }
-    return {
-      start: months[0],
-      end: now,
-      labels: months.map(d => d.toLocaleDateString('es-MX', { month: 'short' })),
-      keys: months.map(d => `${d.getFullYear()}-${d.getMonth()}`),
-      keyFn: d => `${d.getFullYear()}-${d.getMonth()}`,
-      unit: 'month'
-    };
-  }
-  // year — last 12 months grouped by month
-  const months = [];
-  for (let i = 11; i >= 0; i--) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    months.push(d);
-  }
-  return {
-    start: months[0],
-    end: now,
-    labels: months.map(d => d.toLocaleDateString('es-MX', { month: 'short', year: '2-digit' })),
-    keys: months.map(d => `${d.getFullYear()}-${d.getMonth()}`),
-    keyFn: d => `${d.getFullYear()}-${d.getMonth()}`,
-    unit: 'month'
-  };
-}
-
 function renderMetrics() {
   if(!S.archive) S.archive = [];
 
@@ -1581,61 +1516,56 @@ function renderMetrics() {
       <div class="m-donut-leg-val">${statCounts[i]}</div>
     </div>`).join('');
 
-  // ── INCOME + ACTIVITY CHARTS — filtered by period ──
+  // ── INCOME CHART — real data by month from archive ──
+  const months = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
   const now = new Date();
-  const pc = getPeriodConfig(_metricPeriod);
-
-  // Build income data keyed by period
-  const incomeMap = {};
+  // Build last 6 months of real revenue from archive
+  const incomeByMonth = {};
   S.archive.filter(c=>c.finalResult==='Cerrado' && c.archivedAt).forEach(c => {
-    const key = pc.keyFn(new Date(c.archivedAt));
-    incomeMap[key] = (incomeMap[key]||0) + (c.value||0);
+    const d = new Date(c.archivedAt);
+    const key = `${d.getFullYear()}-${d.getMonth()}`;
+    incomeByMonth[key] = (incomeByMonth[key]||0) + (c.value||0);
   });
   S.contacts.filter(c=>c.status==='Cerrado' && c.createdAt).forEach(c => {
-    const key = pc.keyFn(new Date(c.createdAt));
-    incomeMap[key] = (incomeMap[key]||0) + (c.value||0);
+    const d = new Date(c.createdAt);
+    const key = `${d.getFullYear()}-${d.getMonth()}`;
+    incomeByMonth[key] = (incomeByMonth[key]||0) + (c.value||0);
   });
-  const incomeData = pc.keys.map(k => incomeMap[k]||0);
-  const incomeTotal = incomeData.reduce((a,b)=>a+b,0);
-  document.getElementById('mIncomeTotal').textContent = '$' + incomeTotal.toLocaleString();
-
-  // Update income card subtitle
-  const incomeSub = { week:'Esta semana', month:'Últimos 6 meses', year:'Últimos 12 meses' };
-  const incomeSubEl = document.querySelector('.m-income-card .card-sub');
-  if(incomeSubEl) incomeSubEl.textContent = incomeSub[_metricPeriod];
+  const incomeLabels = [], incomeData = [];
+  for(let i=5; i>=0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth()-i, 1);
+    const key = `${d.getFullYear()}-${d.getMonth()}`;
+    incomeLabels.push(months[d.getMonth()]);
+    incomeData.push(incomeByMonth[key]||0);
+  }
 
   const incomeCanvas = document.getElementById('incomeChart');
   if(!incomeCanvas) return;
   if(chartIncome) chartIncome.destroy();
   chartIncome = new Chart(incomeCanvas, {
-    type: _metricPeriod === 'week' ? 'bar' : 'line',
+    type: 'line',
     data: {
-      labels: pc.labels,
+      labels: incomeLabels,
       datasets: [{
         data: incomeData,
         borderColor: '#1ED98A',
         backgroundColor: ctx => {
-          if(_metricPeriod === 'week') return 'rgba(30,217,138,0.5)';
           const g = ctx.chart.ctx.createLinearGradient(0,0,0,200);
-          g.addColorStop(0,'rgba(30,217,138,0.28)'); g.addColorStop(1,'rgba(30,217,138,0)');
+          g.addColorStop(0,'rgba(30,217,138,0.28)'); g.addColorStop(0.6,'rgba(30,217,138,0.06)'); g.addColorStop(1,'rgba(30,217,138,0)');
           return g;
         },
         borderWidth: 2.5, fill: true, tension: 0.45,
-        borderRadius: _metricPeriod === 'week' ? 8 : 0,
-        pointBackgroundColor: '#1ED98A', pointRadius: 4, pointHoverRadius: 7,
+        pointBackgroundColor: '#1ED98A', pointRadius: 5, pointHoverRadius: 8,
         pointBorderColor: 'rgba(8,12,18,0.8)', pointBorderWidth: 2,
+        pointHoverBackgroundColor: '#4EEAAA', pointHoverBorderColor: '#fff', pointHoverBorderWidth: 2,
       }]
     },
     options: {
       responsive: true, maintainAspectRatio: true,
-      animation: { duration: 700, easing: 'easeOutQuart' },
+      animation: { duration: 1000, easing: 'easeOutQuart' },
       plugins: {
         legend: { display: false },
-        tooltip: {
-          backgroundColor:'rgba(8,12,18,0.95)', titleColor:'#EEF2FF', bodyColor:'#7A8BA8',
-          borderColor:'rgba(30,217,138,0.25)', borderWidth:1, padding:12, cornerRadius:10, displayColors:false,
-          callbacks:{ label: ctx => '$' + ctx.parsed.y.toLocaleString() }
-        }
+        tooltip: { backgroundColor:'rgba(8,12,18,0.95)', titleColor:'#EEF2FF', bodyColor:'#7A8BA8', borderColor:'rgba(30,217,138,0.25)', borderWidth:1, padding:12, cornerRadius:10, displayColors:false, callbacks:{ label: ctx => '$' + ctx.parsed.y.toLocaleString() } }
       },
       scales: {
         x: { ticks:{ color:'rgba(176,191,218,0.45)', font:{size:10}, padding:6 }, grid:{ color:'rgba(255,255,255,0.03)', drawBorder:false } },
@@ -1644,68 +1574,81 @@ function renderMetrics() {
     }
   });
 
-  // ── ACTIVITY CHART — filtered by period ──
+  // ── ACTIVITY CHART — real daily calls from retos history (last 30 days) ──
+  const actLabels = [], actData = [], goalData = [];
   const retosH = (S.retos && S.retos.history) ? S.retos.history : {};
   const goal   = (S.retos && S.retos.goal) ? S.retos.goal : 20;
-
-  // Build activity data per period
-  const actMap = {};
-  Object.entries(retosH).forEach(([dateKey, val]) => {
-    const d = new Date(dateKey + 'T12:00:00');
-    const k = pc.keyFn(d);
-    actMap[k] = (actMap[k]||0) + (val.calls||0);
-  });
-  const actData  = pc.keys.map(k => actMap[k]||0);
-  const goalData = pc.keys.map(() => goal * (_metricPeriod === 'week' ? 1 : _metricPeriod === 'month' ? 22 : 260));
-
-  // Update activity subtitle
-  const actSub = { week:'Últimos 7 días', month:'Últimos 6 meses', year:'Últimos 12 meses' };
-  const actSubEl = document.querySelector('.m-activity-card .card-sub');
-  if(actSubEl) actSubEl.textContent = actSub[_metricPeriod];
+  for(let i=29; i>=0; i--) {
+    const d = new Date(); d.setDate(d.getDate()-i);
+    const key = fmtDate(d);
+    const dayData = retosH[key] || { calls:0, goal };
+    // Short label: day/month for every 5th, else just day number
+    actLabels.push(i % 5 === 0 ? `${d.getDate()}/${d.getMonth()+1}` : '');
+    actData.push(dayData.calls || 0);
+    goalData.push(dayData.goal || goal);
+  }
 
   const actCanvas = document.getElementById('activityChart');
   if(!actCanvas) return;
   if(chartActivity) chartActivity.destroy();
   chartActivity = new Chart(actCanvas, {
-    type: 'bar',
+    type: 'line',
     data: {
-      labels: pc.labels,
+      labels: actLabels,
       datasets: [
         {
           label: 'Llamadas',
           data: actData,
+          borderColor: '#4F8EFF',
           backgroundColor: ctx => {
+            const g = ctx.chart.ctx.createLinearGradient(0,0,0,220);
+            g.addColorStop(0,'rgba(79,142,255,0.35)'); g.addColorStop(0.5,'rgba(79,142,255,0.08)'); g.addColorStop(1,'rgba(79,142,255,0)');
+            return g;
+          },
+          borderWidth: 2.5, fill: true, tension: 0.35,
+          pointBackgroundColor: ctx => {
             const v = actData[ctx.dataIndex];
             const g = goalData[ctx.dataIndex];
-            return v >= g ? 'rgba(30,217,138,0.7)' : 'rgba(79,142,255,0.6)';
+            return v >= g ? '#22D98A' : v > 0 ? '#4F8EFF' : 'transparent';
           },
-          borderRadius: 6, borderSkipped: false,
+          pointRadius: ctx => actData[ctx.dataIndex] > 0 ? 4 : 0,
+          pointHoverRadius: 7,
+          pointBorderColor: 'rgba(8,12,18,0.8)', pointBorderWidth: 2,
+          pointHoverBackgroundColor: '#82AEFF', pointHoverBorderColor: '#fff', pointHoverBorderWidth: 2,
         },
         {
           label: 'Meta',
           data: goalData,
-          type: 'line',
-          borderColor: 'rgba(255,209,102,0.5)',
-          borderWidth: 1.5, borderDash: [5,4],
+          borderColor: 'rgba(34,217,138,0.4)',
+          borderWidth: 1.5,
+          borderDash: [5,4],
           fill: false, tension: 0,
-          pointRadius: 0,
+          pointRadius: 0, pointHoverRadius: 0,
         }
       ]
     },
     options: {
       responsive: true, maintainAspectRatio: true,
       interaction: { mode:'index', intersect:false },
-      animation: { duration: 700, easing: 'easeOutQuart' },
+      animation: { duration: 1200, easing: 'easeOutQuart' },
       plugins: {
         legend: { display: false },
         tooltip: {
           backgroundColor:'rgba(8,12,18,0.95)', titleColor:'#EEF2FF', bodyColor:'#7A8BA8',
           borderColor:'rgba(79,142,255,0.3)', borderWidth:1, padding:12, cornerRadius:10,
+          callbacks: {
+            title: items => {
+              const i = items[0].dataIndex;
+              const d = new Date(); d.setDate(d.getDate()-(29-i));
+              return d.toLocaleDateString('es-MX',{weekday:'short',day:'numeric',month:'short'});
+            },
+            label: ctx => ctx.dataset.label + ': ' + ctx.parsed.y + (ctx.dataset.label==='Llamadas'?' llamadas':' meta')
+          }
         }
       },
       scales: {
-        x: { ticks:{ color:'rgba(176,191,218,0.4)', font:{size:10}, padding:4, maxRotation:0 }, grid:{ display:false } },
-        y: { min:0, ticks:{ color:'rgba(176,191,218,0.45)', font:{size:10}, padding:8 }, grid:{ color:'rgba(255,255,255,0.04)', drawBorder:false } }
+        x: { ticks:{ color:'rgba(176,191,218,0.4)', font:{size:9}, padding:4, maxRotation:0 }, grid:{ color:'rgba(255,255,255,0.03)', drawBorder:false } },
+        y: { min:0, ticks:{ color:'rgba(176,191,218,0.45)', font:{size:10}, padding:8, stepSize:5 }, grid:{ color:'rgba(255,255,255,0.04)', drawBorder:false } }
       }
     }
   });
@@ -2698,3 +2641,10 @@ function loadSampleData() {
 }
 
 setInterval(save, 30000);
+
+// ── SERVICE WORKER (PWA) ──
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+  });
+}
