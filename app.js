@@ -1163,7 +1163,7 @@ function renderCalendar() {
       const timeStr = e.time ? e.time+' · ' : '';
       const shortTitle = e.title.length>22 ? e.title.slice(0,22)+'…' : e.title;
       const doneStyle = e.done ? 'opacity:0.45;text-decoration:line-through;' : '';
-      evHtml += `<div class="gcal-ev" style="background:linear-gradient(105deg,${col}28 0%,${col}0a 100%);border-left-color:${col};${doneStyle};box-shadow:inset 0 0 0 1px ${col}18;"
+      evHtml += `<div class="gcal-ev" style="background:${col};opacity:${e.done?'0.4':'1'};"
         onclick="event.stopPropagation();gcalOpenPopup('${e.id}','${ds}')">
         <span class="gcal-ev-time">${timeStr}</span><span class="gcal-ev-name">${shortTitle}</span>
       </div>`;
