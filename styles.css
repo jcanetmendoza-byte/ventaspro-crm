@@ -1893,6 +1893,23 @@ select.paste-field-input option { background: var(--surface2); }
   to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
+/* ── PERIOD FILTER BAR ── */
+.m-period-bar {
+  display: flex; gap: 4px; margin-bottom: 16px;
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 12px; padding: 4px; width: fit-content;
+}
+.m-period-btn {
+  padding: 7px 20px; border-radius: 9px; border: none;
+  font-size: 0.78rem; font-weight: 700; cursor: pointer; font-family: inherit;
+  color: rgba(176,191,218,0.5); background: transparent;
+  transition: all 0.18s ease;
+}
+.m-period-btn:hover { color: #fff; background: rgba(255,255,255,0.06); }
+.m-period-btn.active {
+  background: #4F8EFF; color: #fff;
+  box-shadow: 0 2px 12px rgba(79,142,255,0.4);
+}
 
 /* ── KPI STRIP ── */
 .m-kpi-strip {
