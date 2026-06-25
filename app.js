@@ -44,6 +44,8 @@ const fmtDate = d => d.toISOString().split('T')[0];
 // ── FIREBASE CONFIG ──
 const firebaseConfig = {
   apiKey: "AIzaSyA6iP1pgz_ZQUPeSpMD7ZjlA8n8Ppopj7g",
+  // Si sigue fallando, cambia authDomain por el dominio de Render:
+  // authDomain: "ventaspro-crm.onrender.com",
   authDomain: "ventaspro-crm.firebaseapp.com",
   projectId: "ventaspro-crm",
   storageBucket: "ventaspro-crm.firebasestorage.app",
@@ -183,10 +185,11 @@ window.addEventListener('load', () => {
       loginBtn.disabled = true;
       auth.signInWithEmailAndPassword(email, password)
         .catch(err => {
-          note.textContent = err.code === 'auth/user-not-found'    ? 'Usuario no encontrado' :
-                             err.code === 'auth/wrong-password'    ? 'Contraseña incorrecta' :
-                             err.code === 'auth/invalid-credential'? 'Correo o contraseña incorrectos' :
-                             err.code === 'auth/invalid-email'     ? 'Correo inválido' : err.message;
+          note.textContent = err.code === 'auth/user-not-found'         ? 'Usuario no encontrado' :
+                             err.code === 'auth/wrong-password'         ? 'Contraseña incorrecta' :
+                             err.code === 'auth/invalid-credential'     ? 'Correo o contraseña incorrectos' :
+                             err.code === 'auth/invalid-email'          ? 'Correo inválido' :
+                             err.code === 'auth/network-request-failed' ? 'Error de red. Verifica tu conexión.' : err.message;
           loginBtn.disabled = false;
         });
     });
