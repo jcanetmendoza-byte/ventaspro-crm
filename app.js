@@ -874,9 +874,15 @@ function initDetailPanel() {
   document.getElementById('panelOverlay').addEventListener('click', closeDP);
   document.getElementById('dEdit').addEventListener('click', () => { closeDP(); editContact(S.editContact); });
   document.getElementById('dDelete').addEventListener('click', () => {
-    if (!confirm('¿Eliminar este contacto?')) return;
-    S.contacts = S.contacts.filter(c => c.id !== S.editContact);
-    save(); closeDP(); renderContacts(); showToast('Contacto eliminado');
+    if (!confirm('¿Eliminar este contacto? Se moverá al historial.')) return;
+    const c = S.contacts.find(x => x.id === S.editContact);
+    if(c) {
+      // Soft delete: mover al archivo en vez de borrar permanentemente
+      if(!S.archive) S.archive = [];
+      S.archive.unshift({ ...c, archivedAt: Date.now(), archiveReason: 'deleted' });
+      S.contacts = S.contacts.filter(x => x.id !== S.editContact);
+    }
+    save(); closeDP(); renderContacts(); showToast('Contacto movido al historial');
   });
   document.getElementById('dStatus').addEventListener('change', e => {
     const c = S.contacts.find(x => x.id === S.editContact);
@@ -1945,7 +1951,14 @@ function initSettings() {
   document.getElementById('exportCSV').addEventListener('click', exportCSV);
   document.getElementById('importCSV').addEventListener('change', importCSV);
   document.getElementById('clearData').addEventListener('click',()=>{
-    if(confirm('¿Eliminar TODOS los datos?')){ S.contacts=[]; S.events=[]; S.callsToday=0; S.notifications=[]; save(); renderAll(); showToast('Datos eliminados'); }
+    if(!confirm('⚠️ ¿Eliminar TODOS los datos? Esta acción no se puede deshacer.\n\nSe exportará un backup antes de borrar.')) return;
+    // Exportar backup automático antes de borrar
+    exportCSV();
+    setTimeout(() => {
+      if(!confirm('Se descargó el backup. ¿Confirmas que quieres borrar todo?')) return;
+      S.contacts=[]; S.events=[]; S.callsToday=0; S.notifications=[]; S.archive=[];
+      save(); renderAll(); showToast('Datos eliminados');
+    }, 500);
   });
   document.getElementById('loadSample').addEventListener('click', loadSampleData);
 }
